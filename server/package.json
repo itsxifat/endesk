@@ -1,0 +1,13 @@
+{
+  "name": "endesk-relay",
+  "version": "1.0.0",
+  "description": "EnDesk signaling relay server (WebSocket broker for WebRTC peer discovery).",
+  "main": "relay.js",
+  "scripts": {
+    "start": "node relay.js"
+  },
+  "dependencies": {
+    "ws": "8.22.0"
+  },
+  "license": "MIT"
+}

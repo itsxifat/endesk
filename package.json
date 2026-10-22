@@ -1,0 +1,74 @@
+{
+  "name": "endesk",
+  "productName": "EnDesk",
+  "version": "1.0.0",
+  "description": "Cross-platform remote desktop (AnyDesk-style) for Windows and macOS. Control one device from another over the network, Windows <-> Mac.",
+  "main": "src/main.js",
+  "author": "EnDesk",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "relay": "node server/relay.js",
+    "postinstall": "electron-builder install-app-deps",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder",
+    "dist:win": "electron-builder --win",
+    "dist:mac": "electron-builder --mac"
+  },
+  "dependencies": {
+    "@jitsi/robotjs": "0.6.24"
+  },
+  "devDependencies": {
+    "electron": "45.0.0",
+    "electron-builder": "26.15.3"
+  },
+  "build": {
+    "appId": "com.endesk.app",
+    "productName": "EnDesk",
+    "files": [
+      "src/**/*",
+      "package.json"
+    ],
+    "asarUnpack": [
+      "**/node_modules/@jitsi/robotjs/**"
+    ],
+    "extraMetadata": {
+      "main": "src/main.js"
+    },
+    "mac": {
+      "category": "public.app-category.utilities",
+      "target": [
+        { "target": "dmg", "arch": ["universal"] },
+        { "target": "zip", "arch": ["universal"] }
+      ],
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist",
+      "extendInfo": {
+        "NSScreenCaptureUsageDescription": "EnDesk shares this screen with a remote device you authorize.",
+        "NSAppleEventsUsageDescription": "EnDesk injects keyboard and mouse input to let an authorized remote device control this Mac.",
+        "NSMicrophoneUsageDescription": "Not used by EnDesk.",
+        "NSCameraUsageDescription": "Not used by EnDesk."
+      }
+    },
+    "dmg": {
+      "sign": false
+    },
+    "win": {
+      "target": [
+        { "target": "nsis", "arch": ["x64"] },
+        { "target": "portable", "arch": ["x64"] }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "perMachine": false
+    },
+    "linux": {
+      "target": ["AppImage"],
+      "category": "Utility"
+    }
+  }
+}

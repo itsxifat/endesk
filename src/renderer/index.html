@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="Content-Security-Policy"
+          content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src ws: wss: stun: turn:; media-src 'self' blob:; img-src 'self' data: blob:;" />
+    <title>EnDesk</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div id="app">
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="logo">E</div>
+          <div>
+            <div class="brand-name">EnDesk</div>
+            <div class="brand-sub">Remote Desktop</div>
+          </div>
+        </div>
+
+        <nav class="nav">
+          <button class="nav-btn active" data-view="home">
+            <span class="dot"></span> This device
+          </button>
+          <button class="nav-btn" data-view="connect">
+            <span class="dot"></span> Connect
+          </button>
+          <button class="nav-btn" data-view="settings">
+            <span class="dot"></span> Settings
+          </button>
+        </nav>
+
+        <div class="status-box">
+          <div class="status-row">
+            <span>Relay</span>
+            <span id="relayStatus" class="pill pill-off">offline</span>
+          </div>
+          <div class="status-row">
+            <span>This machine</span>
+            <span id="hostCap" class="pill">—</span>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Main -->
+      <main class="main">
+        <!-- HOME / THIS DEVICE -->
+        <section class="view active" data-view="home">
+          <h1>This device</h1>
+          <p class="muted">
+            Share this ID and password with someone to let them control this
+            computer. Works Windows &harr; Mac.
+          </p>
+
+          <div class="card id-card">
+            <div class="id-block">
+              <div class="label">Your EnDesk ID</div>
+              <div id="deviceId" class="big-id">—</div>
+            </div>
+            <div class="id-block">
+              <div class="label">Session password</div>
+              <div class="pw-row">
+                <div id="sessionPw" class="big-pw">—</div>
+                <button id="regenPw" class="icon-btn" title="Generate a new password">↻</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <label class="switch-row">
+              <input type="checkbox" id="autoAccept" />
+              <span>Auto-accept incoming connections with the correct password (unattended access)</span>
+            </label>
+            <div class="hint">
+              When off, you must approve each incoming session on this screen.
+            </div>
+          </div>
+
+          <div id="permWarn" class="card warn hidden">
+            <strong>macOS permissions required to be controlled.</strong>
+            <p class="muted">
+              Grant these so a remote device can see your screen and move your
+              cursor/keyboard. You may need to restart EnDesk after granting.
+            </p>
+            <div class="perm-grid">
+              <div>Screen Recording: <span id="permScreen" class="pill">—</span></div>
+              <button id="grantScreen" class="btn small">Grant / Open settings</button>
+              <div>Accessibility: <span id="permAcc" class="pill">—</span></div>
+              <button id="grantAcc" class="btn small">Grant / Open settings</button>
+            </div>
+          </div>
+
+          <div id="incoming" class="card incoming hidden">
+            <div class="incoming-text">
+              <strong>Incoming connection</strong>
+              <span id="incomingFrom" class="muted"></span>
+            </div>
+            <div class="incoming-actions">
+              <button id="acceptConn" class="btn primary">Accept</button>
+              <button id="rejectConn" class="btn">Reject</button>
+            </div>
+          </div>
+
+          <div id="hostLive" class="card live hidden">
+            <span class="rec-dot"></span>
+            <span>Your screen is being shared and controlled remotely.</span>
+            <button id="hostStop" class="btn danger small">Stop sharing</button>
+          </div>
+        </section>
+
+        <!-- CONNECT -->
+        <section class="view" data-view="connect">
+          <h1>Connect to a device</h1>
+          <p class="muted">Enter the EnDesk ID and password of the device you want to control.</p>
+
+          <div class="card connect-form">
+            <label class="field">
+              <span>Remote ID</span>
+              <input id="remoteId" inputmode="numeric" placeholder="123 456 789" autocomplete="off" />
+            </label>
+            <label class="field">
+              <span>Password</span>
+              <input id="remotePw" type="password" placeholder="••••••" autocomplete="off" />
+            </label>
+            <button id="connectBtn" class="btn primary wide">Connect</button>
+            <div id="connectMsg" class="connect-msg"></div>
+          </div>
+        </section>
+
+        <!-- SETTINGS -->
+        <section class="view" data-view="settings">
+          <h1>Settings</h1>
+          <div class="card">
+            <label class="field">
+              <span>Signaling relay server (WebSocket URL)</span>
+              <input id="relayUrl" placeholder="ws://your-server:8080" autocomplete="off" />
+            </label>
+            <div class="hint">
+              Both devices must point at the same relay. Run <code>npm run relay</code>
+              on any always-on machine, or host it on a small VPS. Use
+              <code>wss://</code> behind TLS.
+            </div>
+            <label class="field">
+              <span>Permanent (unattended) password — optional</span>
+              <input id="unattendedPw" type="text" placeholder="Leave blank to use random session passwords" autocomplete="off" />
+            </label>
+            <div class="hint">
+              If set, this password always works for incoming connections (in
+              addition to the session password). Keep it strong.
+            </div>
+            <button id="saveSettings" class="btn primary">Save settings</button>
+            <span id="settingsSaved" class="saved-msg"></span>
+          </div>
+          <div class="card">
+            <div class="about">
+              <strong>EnDesk</strong> — peer-to-peer remote desktop over WebRTC.
+              Video is streamed directly between the two devices; the relay only
+              brokers the connection. Input is injected natively on the host.
+            </div>
+          </div>
+        </section>
+
+        <!-- REMOTE VIEWER (control surface) -->
+        <section class="view viewer-view" data-view="viewer">
+          <div class="viewer-bar">
+            <button id="viewerDisconnect" class="btn danger small">Disconnect</button>
+            <span id="viewerTarget" class="muted"></span>
+            <div class="spacer"></div>
+            <label class="toggle">
+              <input type="checkbox" id="swapCmd" /> Swap ⌘/Ctrl
+            </label>
+            <label class="toggle">
+              <input type="checkbox" id="ctrlEnabled" checked /> Control
+            </label>
+            <label class="toggle">
+              <input type="checkbox" id="fitScreen" checked /> Fit
+            </label>
+            <button id="sendCad" class="btn small" title="Send Ctrl+Alt+Del (Windows)">Ctrl+Alt+Del</button>
+            <span id="viewerStats" class="muted stats"></span>
+          </div>
+          <div class="viewer-stage" id="viewerStage">
+            <video id="remoteVideo" autoplay playsinline></video>
+            <div id="viewerOverlay" class="viewer-overlay">Negotiating connection…</div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="keymap.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
