@@ -8,6 +8,7 @@ const {
   screen,
   systemPreferences,
   shell,
+  nativeTheme,
 } = require('electron');
 const path = require('path');
 const fs = require('fs');
@@ -175,7 +176,7 @@ function createWindow() {
     height: 760,
     minWidth: 840,
     minHeight: 560,
-    backgroundColor: '#0f1221',
+    backgroundColor: nativeTheme.shouldUseDarkColors ? '#0b0b0b' : '#ffffff',
     title: 'EnDesk',
     autoHideMenuBar: true,
     webPreferences: {

@@ -1,7 +1,7 @@
 {
   "name": "endesk",
   "productName": "EnDesk",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Cross-platform remote desktop (AnyDesk-style) for Windows and macOS. Control one device from another over the network, Windows <-> Mac.",
   "main": "src/main.js",
   "author": "EnDesk",

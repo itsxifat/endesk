@@ -8,37 +8,43 @@
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+      <defs>
+        <symbol id="i-device" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></g></symbol>
+        <symbol id="i-connect" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></g></symbol>
+        <symbol id="i-settings" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></g></symbol>
+        <symbol id="i-refresh" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 5v6h-6"/></g></symbol>
+      </defs>
+    </svg>
+
     <div id="app">
       <!-- Sidebar -->
       <aside class="sidebar">
         <div class="brand">
-          <div class="logo">E</div>
-          <div>
-            <div class="brand-name">EnDesk</div>
-            <div class="brand-sub">Remote Desktop</div>
-          </div>
+          <span class="mark">E</span>
+          <span>EnDesk</span>
         </div>
 
         <nav class="nav">
           <button class="nav-btn active" data-view="home">
-            <span class="dot"></span> This device
+            <svg><use href="#i-device"/></svg>This device
           </button>
           <button class="nav-btn" data-view="connect">
-            <span class="dot"></span> Connect
+            <svg><use href="#i-connect"/></svg>Connect
           </button>
           <button class="nav-btn" data-view="settings">
-            <span class="dot"></span> Settings
+            <svg><use href="#i-settings"/></svg>Settings
           </button>
         </nav>
 
         <div class="status-box">
           <div class="status-row">
-            <span>Relay</span>
-            <span id="relayStatus" class="pill pill-off">offline</span>
+            <span>Server</span>
+            <span class="state"><i class="led"></i><span id="relayStatus" class="pill pill-off">offline</span></span>
           </div>
           <div class="status-row">
-            <span>This machine</span>
-            <span id="hostCap" class="pill">—</span>
+            <span>Remote control</span>
+            <span class="state"><i class="led"></i><span id="hostCap" class="pill">—</span></span>
           </div>
         </div>
       </aside>
@@ -47,81 +53,86 @@
       <main class="main">
         <!-- HOME / THIS DEVICE -->
         <section class="view active" data-view="home">
-          <h1>This device</h1>
-          <p class="muted">
-            Share this ID and password with someone to let them control this
-            computer. Works Windows &harr; Mac.
-          </p>
-
-          <div class="card id-card">
-            <div class="id-block">
-              <div class="label">Your EnDesk ID</div>
-              <div id="deviceId" class="big-id">—</div>
-            </div>
-            <div class="id-block">
-              <div class="label">Session password</div>
-              <div class="pw-row">
-                <div id="sessionPw" class="big-pw">—</div>
-                <button id="regenPw" class="icon-btn" title="Generate a new password">↻</button>
-              </div>
-            </div>
-          </div>
-
-          <div class="card">
-            <label class="switch-row">
-              <input type="checkbox" id="autoAccept" />
-              <span>Auto-accept incoming connections with the correct password (unattended access)</span>
-            </label>
-            <div class="hint">
-              When off, you must approve each incoming session on this screen.
-            </div>
-          </div>
-
-          <div id="permWarn" class="card warn hidden">
-            <strong>macOS permissions required to be controlled.</strong>
-            <p class="muted">
-              Grant these so a remote device can see your screen and move your
-              cursor/keyboard. You may need to restart EnDesk after granting.
-            </p>
-            <div class="perm-grid">
-              <div>Screen Recording: <span id="permScreen" class="pill">—</span></div>
-              <button id="grantScreen" class="btn small">Grant / Open settings</button>
-              <div>Accessibility: <span id="permAcc" class="pill">—</span></div>
-              <button id="grantAcc" class="btn small">Grant / Open settings</button>
-            </div>
-          </div>
-
-          <div id="incoming" class="card incoming hidden">
-            <div class="incoming-text">
+          <div id="incoming" class="banner incoming hidden">
+            <div class="banner-text">
               <strong>Incoming connection</strong>
               <span id="incomingFrom" class="muted"></span>
             </div>
-            <div class="incoming-actions">
+            <div class="banner-actions">
+              <button id="rejectConn" class="btn">Decline</button>
               <button id="acceptConn" class="btn primary">Accept</button>
-              <button id="rejectConn" class="btn">Reject</button>
             </div>
           </div>
 
-          <div id="hostLive" class="card live hidden">
-            <span class="rec-dot"></span>
-            <span>Your screen is being shared and controlled remotely.</span>
-            <button id="hostStop" class="btn danger small">Stop sharing</button>
+          <div id="hostLive" class="banner live hidden">
+            <div class="banner-text">
+              <strong><span class="rec-dot"></span>Your screen is being shared</strong>
+              <span class="muted">The other computer can see and control this one.</span>
+            </div>
+            <button id="hostStop" class="btn danger">Stop sharing</button>
+          </div>
+
+          <header class="page-head">
+            <h1>This device</h1>
+            <p class="lead">Share this ID and password to let someone connect to this computer.</p>
+          </header>
+
+          <div class="panel">
+            <div class="panel-section">
+              <div class="label">Your ID</div>
+              <div id="deviceId" class="big-id selectable">—</div>
+            </div>
+            <div class="panel-section split">
+              <div>
+                <div class="label">Password</div>
+                <div class="pw-row">
+                  <div id="sessionPw" class="big-pw selectable">—</div>
+                  <button id="regenPw" class="icon-btn" title="New password" aria-label="Generate a new password"><svg><use href="#i-refresh"/></svg></button>
+                </div>
+              </div>
+            </div>
+            <label class="panel-section switch-row">
+              <span>
+                <span class="row-title">Unattended access</span>
+                <span class="row-hint">Accept connections automatically when the password is correct. When off, you approve each one.</span>
+              </span>
+              <input type="checkbox" id="autoAccept" class="switch" />
+            </label>
+          </div>
+
+          <div id="permWarn" class="panel perm hidden">
+            <div class="panel-section">
+              <div class="row-title">Allow this Mac to be controlled</div>
+              <div class="row-hint">macOS needs two permissions. Reopen EnDesk after granting them.</div>
+            </div>
+            <div class="panel-section perm-row">
+              <span>Screen Recording</span>
+              <span class="state"><i class="led"></i><span id="permScreen" class="pill">—</span></span>
+              <button id="grantScreen" class="btn small">Open Settings</button>
+            </div>
+            <div class="panel-section perm-row">
+              <span>Accessibility</span>
+              <span class="state"><i class="led"></i><span id="permAcc" class="pill">—</span></span>
+              <button id="grantAcc" class="btn small">Open Settings</button>
+            </div>
           </div>
         </section>
 
         <!-- CONNECT -->
         <section class="view" data-view="connect">
-          <h1>Connect to a device</h1>
-          <p class="muted">Enter the EnDesk ID and password of the device you want to control.</p>
+          <header class="page-head">
+            <h1>Connect</h1>
+            <p class="lead">Enter the ID and password shown on the other computer.</p>
+          </header>
 
-          <div class="card connect-form">
+          <div class="form">
             <label class="field">
-              <span>Remote ID</span>
-              <input id="remoteId" inputmode="numeric" placeholder="123 456 789" autocomplete="off" />
+              <span>ID</span>
+              <input id="remoteId" class="id-input" inputmode="numeric" placeholder="123 456 789" autocomplete="off" />
             </label>
             <label class="field">
               <span>Password</span>
-              <input id="remotePw" type="password" placeholder="••••••" autocomplete="off" />
+              <input id="remotePw" type="password" placeholder="Password" autocomplete="off" />
             </label>
             <button id="connectBtn" class="btn primary wide">Connect</button>
             <div id="connectMsg" class="connect-msg"></div>
@@ -130,55 +141,52 @@
 
         <!-- SETTINGS -->
         <section class="view" data-view="settings">
-          <h1>Settings</h1>
-          <div class="card">
+          <header class="page-head">
+            <h1>Settings</h1>
+          </header>
+
+          <div class="form wide-form">
             <label class="field">
-              <span>Signaling relay server (WebSocket URL)</span>
+              <span>Permanent password</span>
+              <input id="unattendedPw" type="text" placeholder="Not set — a new password is made each session" autocomplete="off" />
+            </label>
+            <p class="row-hint">Always works for incoming connections, in addition to the session password. Use a strong one.</p>
+
+            <label class="field">
+              <span>Connection server</span>
               <input id="relayUrl" placeholder="wss://endesk.enfinito.cloud/relay" autocomplete="off" />
             </label>
-            <div class="hint">
-              Both devices must point at the same relay. The default is
-              <code>wss://endesk.enfinito.cloud/relay</code>; to use your own, run
-              <code>npm run relay</code> on any always-on machine and put
-              <code>wss://</code> (TLS) in front of it.
-            </div>
-            <label class="field">
-              <span>Permanent (unattended) password — optional</span>
-              <input id="unattendedPw" type="text" placeholder="Leave blank to use random session passwords" autocomplete="off" />
-            </label>
-            <div class="hint">
-              If set, this password always works for incoming connections (in
-              addition to the session password). Keep it strong.
-            </div>
-            <button id="saveSettings" class="btn primary">Save settings</button>
-            <span id="settingsSaved" class="saved-msg"></span>
-          </div>
-          <div class="card">
-            <div class="about">
-              <strong>EnDesk</strong> — peer-to-peer remote desktop over WebRTC.
-              Video is streamed directly between the two devices; the relay only
-              brokers the connection. Input is injected natively on the host.
+            <p class="row-hint">Both computers must use the same server. Leave the default unless you run your own.</p>
+
+            <div class="actions">
+              <button id="saveSettings" class="btn primary">Save</button>
+              <span id="settingsSaved" class="saved-msg"></span>
             </div>
           </div>
+
+          <p class="about">
+            EnDesk streams the screen directly between the two computers, encrypted end to end.
+            The server only introduces them.
+          </p>
         </section>
 
         <!-- REMOTE VIEWER (control surface) -->
         <section class="view viewer-view" data-view="viewer">
           <div class="viewer-bar">
-            <button id="viewerDisconnect" class="btn danger small">Disconnect</button>
-            <span id="viewerTarget" class="muted"></span>
+            <button id="viewerDisconnect" class="btn small danger">Disconnect</button>
+            <span id="viewerTarget" class="viewer-target"></span>
             <div class="spacer"></div>
-            <label class="toggle">
-              <input type="checkbox" id="swapCmd" /> Swap ⌘/Ctrl
+            <label class="chip">
+              <input type="checkbox" id="ctrlEnabled" checked /><span>Control</span>
             </label>
-            <label class="toggle">
-              <input type="checkbox" id="ctrlEnabled" checked /> Control
+            <label class="chip">
+              <input type="checkbox" id="fitScreen" checked /><span>Fit</span>
             </label>
-            <label class="toggle">
-              <input type="checkbox" id="fitScreen" checked /> Fit
+            <label class="chip">
+              <input type="checkbox" id="swapCmd" /><span>⌘ ↔ Ctrl</span>
             </label>
             <button id="sendCad" class="btn small" title="Send Ctrl+Alt+Del (Windows)">Ctrl+Alt+Del</button>
-            <span id="viewerStats" class="muted stats"></span>
+            <span id="viewerStats" class="stats"></span>
           </div>
           <div class="viewer-stage" id="viewerStage">
             <video id="remoteVideo" autoplay playsinline></video>

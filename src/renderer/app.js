@@ -627,7 +627,7 @@ async function boot() {
   $('unattendedPw').value = state.cfg.unattendedPassword || '';
   $('autoAccept').checked = !!state.cfg.autoAccept;
 
-  setPill($('hostCap'), state.cfg.canHost ? 'can be controlled' : 'view-only', state.cfg.canHost);
+  setPill($('hostCap'), state.cfg.canHost ? 'allowed' : 'unavailable', state.cfg.canHost);
 
   refreshSessionPassword();
   applyPermissions(state.cfg.permissions);
