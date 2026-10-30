@@ -16,6 +16,7 @@ const state = {
   wsReconnectTimer: null,
   role: null, // 'host' | 'viewer' | null
   pc: null,
+  turnServers: [], // short-lived TURN credentials from the relay, per session
   inputChannel: null,
   localStream: null,
   pendingRid: null, // host: rid of a join awaiting accept
@@ -101,7 +102,7 @@ function connectRelay() {
     state.wsReady = true;
     setPill($('relayStatus'), 'online', true);
     // Register this device as a reachable host.
-    wsSend({ type: 'host', id: state.cfg.deviceId });
+    wsSend({ type: 'host', id: state.cfg.deviceId, key: state.cfg.deviceKey });
   };
 
   ws.onclose = () => {
@@ -132,6 +133,16 @@ function handleSignal(msg) {
       break;
 
     case 'error':
+      if (msg.code === 'id-taken') {
+        // Another device already owns this ID (e.g. a copied config): take a new one.
+        window.endesk.resetDeviceId().then((r) => {
+          state.cfg.deviceId = r.deviceId;
+          state.cfg.deviceKey = r.deviceKey;
+          $('deviceId').textContent = formatId(r.deviceId);
+          wsSend({ type: 'host', id: r.deviceId, key: r.deviceKey });
+        });
+        break;
+      }
       if (state.role === 'viewer' || !state.role) {
         showConnectMsg(msg.message || msg.code || 'Connection error', true);
         if (msg.code === 'not-found' || msg.code === 'busy') resetSession(false);
@@ -151,6 +162,7 @@ function handleSignal(msg) {
 
     // ---- Both: the session is approved; begin WebRTC ----
     case 'session-begin':
+      state.turnServers = Array.isArray(msg.iceServers) ? msg.iceServers : [];
       beginSession(msg.role);
       break;
 
@@ -228,7 +240,7 @@ $('rejectConn').addEventListener('click', () => {
 // WebRTC lifecycle
 // ---------------------------------------------------------------------------
 function newPeerConnection() {
-  const pc = new RTCPeerConnection(ICE);
+  const pc = new RTCPeerConnection({ iceServers: ICE.iceServers.concat(state.turnServers) });
   state.remoteDescSet = false;
   state.iceQueue = [];
   pc.onicecandidate = (e) => {

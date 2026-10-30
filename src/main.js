@@ -37,6 +37,9 @@ try {
 // ---------------------------------------------------------------------------
 const CONFIG_PATH = () => path.join(app.getPath('userData'), 'config.json');
 
+// Public relay used until the user picks another one in Settings.
+const DEFAULT_RELAY_URL = process.env.ENDESK_RELAY_URL || 'wss://endesk.enfinito.cloud/relay';
+
 function loadConfig() {
   try {
     return JSON.parse(fs.readFileSync(CONFIG_PATH(), 'utf8'));
@@ -60,6 +63,12 @@ function ensureDeviceId(cfg) {
     for (let i = 0; i < 9; i++) id += Math.floor(Math.random() * 10);
     if (id[0] === '0') id = '1' + id.slice(1);
     cfg.deviceId = id;
+    // Secret that proves to the relay this device owns its ID.
+    cfg.deviceKey = crypto.randomBytes(32).toString('hex');
+    saveConfig(cfg);
+  }
+  if (!cfg.deviceKey) {
+    cfg.deviceKey = crypto.randomBytes(32).toString('hex');
     saveConfig(cfg);
   }
   return cfg.deviceId;
@@ -191,7 +200,8 @@ ipcMain.handle('endesk:init', () => {
   const deviceId = ensureDeviceId(cfg);
   return {
     deviceId,
-    relayUrl: cfg.relayUrl || 'ws://localhost:8080',
+    deviceKey: cfg.deviceKey,
+    relayUrl: cfg.relayUrl || DEFAULT_RELAY_URL,
     unattendedPassword: cfg.unattendedPassword || '',
     autoAccept: !!cfg.autoAccept,
     platform: process.platform,
@@ -210,6 +220,15 @@ ipcMain.handle('endesk:save-settings', (_e, patch) => {
   }
   saveConfig(cfg);
   return { ok: true };
+});
+
+// The relay reported that another device owns this ID: pick a fresh one.
+ipcMain.handle('endesk:reset-device-id', () => {
+  const cfg = loadConfig();
+  delete cfg.deviceId;
+  delete cfg.deviceKey;
+  const deviceId = ensureDeviceId(cfg);
+  return { deviceId, deviceKey: cfg.deviceKey };
 });
 
 ipcMain.handle('endesk:get-sources', async () => {

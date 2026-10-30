@@ -12,29 +12,117 @@
 // Run anywhere both devices can reach:   PORT=8080 node relay.js
 // Behind TLS (recommended for the internet) terminate wss:// with a reverse
 // proxy (nginx/caddy) in front of this process.
+//
+// Optional environment:
+//   OWNERS_FILE  where device-ID ownership is persisted (default: in memory only)
+//   TURN_SECRET  coturn "static-auth-secret"; enables TURN fallback for sessions
+//   TURN_URLS    comma-separated TURN URLs, e.g. turn:relay.example.com:3478
+//   TURN_TTL     lifetime of minted TURN credentials in seconds (default 12h)
 // ===========================================================================
 
 const http = require('http');
+const fs = require('fs');
 const crypto = require('crypto');
 const { WebSocketServer } = require('ws');
 
 const PORT = parseInt(process.env.PORT || '8080', 10);
 const HOST = process.env.HOST || '0.0.0.0';
+const OWNERS_FILE = process.env.OWNERS_FILE || '';
+const TURN_SECRET = process.env.TURN_SECRET || '';
+const TURN_URLS = (process.env.TURN_URLS || '').split(',').map((s) => s.trim()).filter(Boolean);
+const TURN_TTL = parseInt(process.env.TURN_TTL || '43200', 10);
+
+// A host may receive at most this many join requests per minute, which keeps
+// guessing a session/unattended password impractically slow.
+const JOINS_PER_MINUTE = 20;
+// A single client address may claim at most this many new device IDs per hour.
+const CLAIMS_PER_HOUR = 10;
 
 const hosts = new Map(); // deviceId -> ws (a reachable host)
 const pending = new Map(); // rid -> { viewer, host }
 
+// ---------------------------------------------------------------------------
+// Device-ID ownership. The first device to register an ID proves ownership with
+// a secret key it keeps; later registrations of that ID must present the same
+// key. Without this, anyone could claim another device's ID and receive the
+// passwords viewers type for it.
+// ---------------------------------------------------------------------------
+const owners = new Map(); // deviceId -> sha256(device key)
+
+function loadOwners() {
+  if (!OWNERS_FILE) return;
+  try {
+    const data = JSON.parse(fs.readFileSync(OWNERS_FILE, 'utf8'));
+    for (const [id, digest] of Object.entries(data)) owners.set(id, digest);
+  } catch (err) {
+    if (err.code !== 'ENOENT') console.error('[relay] could not read owners file:', err.message);
+  }
+}
+
+let saveTimer = null;
+function saveOwners() {
+  if (!OWNERS_FILE || saveTimer) return;
+  saveTimer = setTimeout(() => {
+    saveTimer = null;
+    const tmp = OWNERS_FILE + '.tmp';
+    try {
+      fs.writeFileSync(tmp, JSON.stringify(Object.fromEntries(owners)));
+      fs.renameSync(tmp, OWNERS_FILE);
+    } catch (err) {
+      console.error('[relay] could not write owners file:', err.message);
+    }
+  }, 1000);
+}
+
+loadOwners();
+
+// Fixed-window counters: key -> { count, resetAt }.
+function overLimit(buckets, key, limit, windowMs) {
+  const now = Date.now();
+  let b = buckets.get(key);
+  if (!b || now >= b.resetAt) {
+    b = { count: 0, resetAt: now + windowMs };
+    buckets.set(key, b);
+  }
+  b.count += 1;
+  return b.count > limit;
+}
+const joinBuckets = new Map();
+const claimBuckets = new Map();
+setInterval(() => {
+  const now = Date.now();
+  for (const buckets of [joinBuckets, claimBuckets]) {
+    for (const [k, b] of buckets) if (now >= b.resetAt) buckets.delete(k);
+  }
+}, 60000).unref();
+
+// Short-lived TURN credentials (coturn "use-auth-secret" / TURN REST API).
+function turnServers() {
+  if (!TURN_SECRET || !TURN_URLS.length) return [];
+  const username = `${Math.floor(Date.now() / 1000) + TURN_TTL}:endesk`;
+  const credential = crypto.createHmac('sha1', TURN_SECRET).update(username).digest('base64');
+  return [{ urls: TURN_URLS, username, credential }];
+}
+
 const server = http.createServer((req, res) => {
   if (req.url === '/health') {
     res.writeHead(200, { 'content-type': 'application/json' });
-    res.end(JSON.stringify({ ok: true, hosts: hosts.size, pending: pending.size }));
+    res.end(JSON.stringify({ ok: true, hosts: hosts.size, pending: pending.size, turn: TURN_URLS.length > 0 && !!TURN_SECRET }));
     return;
   }
   res.writeHead(200, { 'content-type': 'text/plain' });
   res.end('EnDesk relay is running. Connect an EnDesk client to ws(s)://<this-host>:' + PORT);
 });
 
-const wss = new WebSocketServer({ server });
+// Signaling messages are a few KB of SDP at most.
+const wss = new WebSocketServer({ server, maxPayload: 64 * 1024 });
+
+// Behind a reverse proxy on loopback, trust its X-Real-IP; otherwise use the socket address.
+function clientAddress(req) {
+  const remote = req.socket.remoteAddress || '';
+  const loopback = remote === '127.0.0.1' || remote === '::1' || remote === '::ffff:127.0.0.1';
+  return (loopback && req.headers['x-real-ip']) || remote;
+}
 
 function send(ws, obj) {
   if (ws && ws.readyState === ws.OPEN) {
@@ -65,7 +153,8 @@ function dropPendingFor(ws) {
   }
 }
 
-wss.on('connection', (ws) => {
+wss.on('connection', (ws, req) => {
+  ws._addr = clientAddress(req);
   ws._alive = true;
   ws.on('pong', () => {
     ws._alive = true;
@@ -84,7 +173,27 @@ wss.on('connection', (ws) => {
       // ---- Register as a host reachable by ID ----
       case 'host': {
         const id = String(msg.id || '');
-        if (!id) return;
+        const key = String(msg.key || '');
+        if (!/^\d{9}$/.test(id) || key.length < 32) {
+          send(ws, { type: 'error', code: 'bad-host', message: 'Invalid device registration.' });
+          return;
+        }
+        // One device ID per connection.
+        if (ws._hostId && ws._hostId !== id) return;
+        const digest = crypto.createHash('sha256').update(key).digest('hex');
+        const owner = owners.get(id);
+        if (owner && owner !== digest) {
+          send(ws, { type: 'error', code: 'id-taken', message: 'This device ID belongs to another device.' });
+          return;
+        }
+        if (!owner) {
+          if (overLimit(claimBuckets, ws._addr, CLAIMS_PER_HOUR, 3600000)) {
+            send(ws, { type: 'error', code: 'rate-limited', message: 'Too many new devices from this network. Try again later.' });
+            return;
+          }
+          owners.set(id, digest);
+          saveOwners();
+        }
         // If another socket held this id, release it (reconnection / restart).
         const prev = hosts.get(id);
         if (prev && prev !== ws) {
@@ -112,6 +221,10 @@ wss.on('connection', (ws) => {
           send(ws, { type: 'error', code: 'self', message: 'Cannot connect to yourself.' });
           return;
         }
+        if (overLimit(joinBuckets, id, JOINS_PER_MINUTE, 60000)) {
+          send(ws, { type: 'error', code: 'rate-limited', message: 'Too many connection attempts to that device. Wait a minute and try again.' });
+          return;
+        }
         const rid = crypto.randomUUID();
         pending.set(rid, { viewer: ws, host: hostWs });
         // Forward the password to the host for verification (relay never checks it).
@@ -131,8 +244,9 @@ wss.on('connection', (ws) => {
           // Link the two sockets as peers.
           ws._peer = p.viewer;
           p.viewer._peer = ws;
-          send(ws, { type: 'session-begin', role: 'host' });
-          send(p.viewer, { type: 'session-begin', role: 'viewer' });
+          const iceServers = turnServers();
+          send(ws, { type: 'session-begin', role: 'host', iceServers });
+          send(p.viewer, { type: 'session-begin', role: 'viewer', iceServers });
         } else {
           send(p.viewer, { type: 'rejected', reason: String(msg.reason || 'declined') });
         }

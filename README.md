@@ -59,14 +59,25 @@ endesk/
 │     ├─ style.css
 │     ├─ keymap.js         # browser key codes -> robotjs key names
 │     └─ app.js            # signaling client + WebRTC + input capture
-└─ server/
-   ├─ package.json
-   └─ relay.js             # WebSocket signaling relay
+├─ server/
+│  ├─ package.json
+│  └─ relay.js             # WebSocket signaling relay
+├─ deploy/                 # production server setup, deploy + download page
+└─ .github/workflows/
+   └─ build.yml            # builds the Windows + macOS installers
 ```
 
 ---
 
-## 1. Run the relay server
+## Download
+
+Installers for Windows and macOS: **https://endesk.enfinito.cloud**. The apps use
+the public relay `wss://endesk.enfinito.cloud/relay` by default, so they work out
+of the box. Server and release steps are in [deploy/README.md](deploy/README.md).
+
+---
+
+## 1. Run your own relay server (optional)
 
 The relay must be reachable by **both** devices. For two machines on the same
 LAN you can run it on either one. For internet use, run it on a small VPS and
@@ -96,8 +107,10 @@ npm start
 
 Then in the app:
 
-1. Open **Settings** and set the **relay URL** to the same server on both
-   devices (e.g. `ws://192.168.1.50:8080` or `wss://relay.example.com`), **Save**.
+1. Both devices use `wss://endesk.enfinito.cloud/relay` by default. To use your
+   own relay, open **Settings** and set the same **relay URL** on both devices
+   (e.g. `ws://192.168.1.50:8080`), **Save**. For development you can also start
+   the app with `ENDESK_RELAY_URL=ws://localhost:8080 npm start`.
 2. On the device you want to **control** (the host): note its **ID** and
    **password** on the *This device* screen.
 3. On the other device (the viewer): go to **Connect**, enter that ID and
@@ -156,11 +169,16 @@ button is best-effort for in-session dialogs.)
 
 ## Security notes
 
-- The relay never receives the password; the **host app** verifies it.
+- The relay passes the password through to the host but never checks or stores
+  it; the **host app** verifies it.
+- Each device proves it owns its ID with a secret key, so nobody else can
+  register your ID and receive the passwords people type for it.
+- Connection attempts to a device are rate limited to slow down password guessing.
 - Passwords are random per session unless you set a permanent one in Settings.
 - Media and input are end-to-end between the two peers (DTLS/SRTP via WebRTC).
-- On very restrictive networks (symmetric NAT) a **TURN** server may be needed;
-  add its credentials to the `ICE` list in `src/renderer/app.js`.
+- On very restrictive networks (symmetric NAT) the devices fall back to a
+  **TURN** server: set `TURN_SECRET` and `TURN_URLS` on the relay (coturn
+  `use-auth-secret`) and it hands each session short-lived credentials.
 
 ---
 

@@ -134,12 +134,13 @@
           <div class="card">
             <label class="field">
               <span>Signaling relay server (WebSocket URL)</span>
-              <input id="relayUrl" placeholder="ws://your-server:8080" autocomplete="off" />
+              <input id="relayUrl" placeholder="wss://endesk.enfinito.cloud/relay" autocomplete="off" />
             </label>
             <div class="hint">
-              Both devices must point at the same relay. Run <code>npm run relay</code>
-              on any always-on machine, or host it on a small VPS. Use
-              <code>wss://</code> behind TLS.
+              Both devices must point at the same relay. The default is
+              <code>wss://endesk.enfinito.cloud/relay</code>; to use your own, run
+              <code>npm run relay</code> on any always-on machine and put
+              <code>wss://</code> (TLS) in front of it.
             </div>
             <label class="field">
               <span>Permanent (unattended) password — optional</span>

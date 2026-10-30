@@ -6,6 +6,7 @@ const { contextBridge, ipcRenderer } = require('electron');
 contextBridge.exposeInMainWorld('endesk', {
   init: () => ipcRenderer.invoke('endesk:init'),
   saveSettings: (patch) => ipcRenderer.invoke('endesk:save-settings', patch),
+  resetDeviceId: () => ipcRenderer.invoke('endesk:reset-device-id'),
   getSources: () => ipcRenderer.invoke('endesk:get-sources'),
   getScreenSize: () => ipcRenderer.invoke('endesk:screen-size'),
   getPermissions: () => ipcRenderer.invoke('endesk:permissions'),

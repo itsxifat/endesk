@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>EnDesk — Download</title>
+  <meta name="description" content="EnDesk remote desktop for Windows and macOS." />
+  <style>
+    :root {
+      --bg: #0f1221;
+      --bg-2: #171b2e;
+      --panel: #1c2138;
+      --line: #2c3357;
+      --text: #e8ebf7;
+      --muted: #9aa3c7;
+      --accent: #5b7cfa;
+      --accent-2: #7a93ff;
+      --good: #35d07f;
+      --bad: #ff5c6c;
+      --radius: 14px;
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: var(--font);
+      background: radial-gradient(1200px 600px at 50% -200px, #1f2650, var(--bg));
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+    main { max-width: 960px; margin: 0 auto; padding: 48px 16px 64px; }
+    header { display: flex; align-items: center; gap: 14px; }
+    .logo {
+      width: 48px; height: 48px; border-radius: 12px; flex: none;
+      display: grid; place-items: center; font-weight: 800; font-size: 24px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    }
+    h1 { margin: 0; font-size: 28px; }
+    .sub { margin: 0; color: var(--muted); }
+    .status { margin-left: auto; font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 8px; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+    .dot.on { background: var(--good); }
+    .dot.off { background: var(--bad); }
+    .lead { font-size: 18px; color: var(--muted); margin: 32px 0 24px; max-width: 640px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+    .card {
+      background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+      padding: 24px; display: flex; flex-direction: column; gap: 12px;
+    }
+    .card.mine { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
+    .card h2 { margin: 0; font-size: 20px; display: flex; align-items: center; gap: 10px; }
+    .tag { font-size: 12px; font-weight: 600; color: var(--accent-2); }
+    .meta { color: var(--muted); font-size: 14px; margin: 0; }
+    .btn {
+      display: inline-block; text-align: center; text-decoration: none; font-weight: 600;
+      padding: 12px 18px; border-radius: 10px; background: var(--accent); color: #fff;
+    }
+    .btn:hover { background: var(--accent-2); }
+    .alt { font-size: 14px; color: var(--muted); }
+    a { color: var(--accent-2); }
+    section { margin-top: 40px; }
+    h3 { font-size: 18px; margin: 0 0 12px; }
+    ol, ul { margin: 0; padding-left: 22px; }
+    li { margin: 6px 0; }
+    .two { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; }
+    code { background: var(--bg-2); border: 1px solid var(--line); border-radius: 6px; padding: 1px 6px; font-size: 13px; overflow-wrap: anywhere; }
+    .sums { font-size: 12px; color: var(--muted); }
+    .sums code { font-size: 11px; }
+    footer { margin-top: 48px; color: var(--muted); font-size: 13px; }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div class="logo" aria-hidden="true">E</div>
+      <div>
+        <h1>EnDesk</h1>
+        <p class="sub">Remote desktop for Windows and macOS</p>
+      </div>
+      <div class="status" title="Connection server status"><span id="dot" class="dot"></span><span id="status">Checking server…</span></div>
+    </header>
+
+    <p class="lead">
+      Control one computer from another — Windows ↔ Mac in either direction.
+      Share the 9-digit ID and password shown in EnDesk, and connect.
+    </p>
+
+    <div class="grid">
+      <div class="card" id="card-win">
+        <h2>Windows <span class="tag" id="tag-win"></span></h2>
+        <p class="meta">Windows 10 and 11, 64-bit · <span id="meta-win">installer</span></p>
+        <a class="btn" href="downloads/EnDesk-Setup.exe">Download for Windows</a>
+        <span class="alt">No install rights? <a href="downloads/EnDesk-Portable.exe">Portable version</a> (runs without installing).</span>
+      </div>
+      <div class="card" id="card-mac">
+        <h2>macOS <span class="tag" id="tag-mac"></span></h2>
+        <p class="meta">Apple Silicon and Intel · <span id="meta-mac">disk image</span></p>
+        <a class="btn" href="downloads/EnDesk-mac.dmg">Download for Mac</a>
+        <span class="alt">Prefer a zip? <a href="downloads/EnDesk-mac.zip">Download .zip</a></span>
+      </div>
+    </div>
+
+    <section class="two">
+      <div>
+        <h3>First launch on Windows</h3>
+        <ol>
+          <li>Run <code>EnDesk-Setup.exe</code>.</li>
+          <li>If “Windows protected your PC” appears, click <strong>More info</strong> → <strong>Run anyway</strong>.</li>
+          <li>Finish the installer and open EnDesk from the Start menu.</li>
+        </ol>
+      </div>
+      <div>
+        <h3>First launch on Mac</h3>
+        <ol>
+          <li>Open the <code>.dmg</code> and drag <strong>EnDesk</strong> into <strong>Applications</strong>.</li>
+          <li>Open EnDesk. If macOS says it can’t verify the app, open <strong>System Settings → Privacy &amp; Security</strong> and click <strong>Open Anyway</strong>.</li>
+          <li>To let this Mac be controlled, allow EnDesk under <strong>Screen Recording</strong> and <strong>Accessibility</strong> in the same settings page, then reopen EnDesk.</li>
+        </ol>
+      </div>
+    </section>
+
+    <section>
+      <h3>Connect</h3>
+      <ol>
+        <li>On the computer you want to control, open EnDesk and read its <strong>ID</strong> and <strong>password</strong>.</li>
+        <li>On your computer, open EnDesk → <strong>Connect</strong>, enter that ID and password.</li>
+        <li>The other side clicks <strong>Accept</strong> (or set a permanent password in Settings for unattended access).</li>
+      </ol>
+    </section>
+
+    <section class="sums" id="sums" hidden>
+      <h3>Checksums (SHA-256)</h3>
+      <ul id="sum-list"></ul>
+    </section>
+
+    <footer>Only connect to computers you own or are allowed to access.</footer>
+  </main>
+
+  <script>
+    (function () {
+      var ua = navigator.userAgent;
+      var mine = /Mac/.test(navigator.platform || ua) ? 'mac' : /Win/.test(navigator.platform || ua) ? 'win' : null;
+      if (mine) {
+        document.getElementById('card-' + mine).classList.add('mine');
+        document.getElementById('tag-' + mine).textContent = 'Your system';
+      }
+
+      function mb(n) { return (n / 1048576).toFixed(0) + ' MB'; }
+      function ver(file) { var m = /^([^/]+)\//.exec(file || ''); return m ? 'v' + m[1] : ''; }
+
+      fetch('downloads/latest.json', { cache: 'no-cache' })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (j) {
+          if (!j || !j.files) return;
+          var f = j.files;
+          if (f['EnDesk-Setup.exe']) document.getElementById('meta-win').textContent = ver(f['EnDesk-Setup.exe'].file) + ' · ' + mb(f['EnDesk-Setup.exe'].size);
+          if (f['EnDesk-mac.dmg']) document.getElementById('meta-mac').textContent = ver(f['EnDesk-mac.dmg'].file) + ' · ' + mb(f['EnDesk-mac.dmg'].size);
+          var list = document.getElementById('sum-list');
+          Object.keys(f).forEach(function (name) {
+            var li = document.createElement('li');
+            var code = document.createElement('code');
+            code.textContent = f[name].sha256;
+            li.textContent = f[name].file.split('/').pop() + ' ';
+            li.appendChild(code);
+            list.appendChild(li);
+          });
+          document.getElementById('sums').hidden = false;
+        })
+        .catch(function () {});
+
+      fetch('health', { cache: 'no-store' })
+        .then(function (r) { return r.json(); })
+        .then(function (h) {
+          document.getElementById('dot').className = 'dot ' + (h.ok ? 'on' : 'off');
+          document.getElementById('status').textContent = h.ok ? 'Server online' : 'Server problem';
+        })
+        .catch(function () {
+          document.getElementById('dot').className = 'dot off';
+          document.getElementById('status').textContent = 'Server offline';
+        });
+    })();
+  </script>
+</body>
+</html>

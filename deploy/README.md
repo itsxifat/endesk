@@ -1,0 +1,63 @@
+# Deploying EnDesk
+
+Production runs at **https://endesk.enfinito.cloud**:
+
+| Path | What |
+|---|---|
+| `/` | Download page (`deploy/site/index.html`) |
+| `/downloads/EnDesk-Setup.exe`, `EnDesk-Portable.exe` | Windows installer / portable app |
+| `/downloads/EnDesk-mac.dmg`, `EnDesk-mac.zip` | macOS universal app (Apple Silicon + Intel) |
+| `/downloads/latest.json` | Current version, sizes and SHA-256 of each file |
+| `/relay` | WebSocket signaling relay (default in the apps) |
+| `/health` | Relay health JSON |
+
+## Server layout
+
+- `endesk-relay.service` runs `server/relay.js` as user `endesk` on `127.0.0.1:4740`
+  with a private Node runtime in `/opt/endesk/node`.
+- Releases in `/opt/endesk/releases/*`, active one at `/opt/endesk/current`.
+- Settings in `/etc/endesk/relay.env` (mode 640). `TURN_SECRET` there is the local
+  coturn's `static-auth-secret`; if coturn's secret changes, update it and
+  `systemctl restart endesk-relay`. Remove the `TURN_*` lines to turn TURN off.
+- Device-ID ownership in `/var/lib/endesk/owners.json`.
+- nginx site `/etc/nginx/sites-available/endesk.conf` (TLS added by certbot).
+- Download files in `/var/www/endesk/downloads/<version>/`; the stable names are symlinks.
+
+## First-time setup
+
+```bash
+git archive --format=tar HEAD | ssh <server> 'd=$(mktemp -d) && tar -x -C "$d" && sudo DOMAIN=endesk.enfinito.cloud bash "$d/deploy/server-setup.sh"; rm -rf "$d"'
+git archive --format=tar HEAD | ssh <server> "sudo /opt/endesk/deploy.sh $(git rev-parse --short HEAD)"
+ssh <server> 'sudo certbot --nginx -d endesk.enfinito.cloud --redirect'
+```
+
+DNS: an `A` record for `endesk.enfinito.cloud` pointing at the server. TURN uses the
+server's existing coturn on port 3478 (UDP/TCP) with relay ports 50000–50999.
+
+## Updating the relay or the page
+
+```bash
+git archive --format=tar HEAD | ssh <server> "sudo /opt/endesk/deploy.sh $(git rev-parse --short HEAD)"
+```
+
+It health-checks the relay and rolls back automatically if the new release fails.
+
+## Releasing new app versions
+
+1. Bump `version` in `package.json`, commit, then tag and push: `git tag v1.2.3 && git push origin HEAD v1.2.3`.
+2. The **Build installers** workflow builds Windows (NSIS + portable) and macOS
+   (universal dmg + zip) and uploads them as run artifacts.
+3. Download the artifacts, copy them to the server, and publish:
+
+   ```bash
+   scp EnDesk-* <server>:endesk-upload/
+   ssh <server> 'sudo /opt/endesk/publish-downloads.sh ~/endesk-upload 1.2.3 && rm -rf ~/endesk-upload'
+   ```
+
+## Signing
+
+The builds are not code-signed with paid certificates. Windows shows SmartScreen
+("More info → Run anyway"); macOS needs "Open Anyway" in Privacy & Security once
+(the app is ad-hoc signed so it runs on Apple Silicon). For a warning-free install,
+add an Apple Developer ID (signing + notarization) and a Windows code-signing
+certificate to the workflow.

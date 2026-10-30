@@ -32,6 +32,7 @@
     "asarUnpack": [
       "**/node_modules/@jitsi/robotjs/**"
     ],
+    "npmRebuild": false,
     "extraMetadata": {
       "main": "src/main.js"
     },
@@ -41,10 +42,13 @@
         { "target": "dmg", "arch": ["universal"] },
         { "target": "zip", "arch": ["universal"] }
       ],
+      "artifactName": "EnDesk-${version}-mac-${arch}.${ext}",
+      "identity": "-",
       "hardenedRuntime": true,
       "gatekeeperAssess": false,
       "entitlements": "build/entitlements.mac.plist",
       "entitlementsInherit": "build/entitlements.mac.plist",
+      "x64ArchFiles": "**/node_modules/@jitsi/robotjs/prebuilds/darwin-x64+arm64/*.node",
       "extendInfo": {
         "NSScreenCaptureUsageDescription": "EnDesk shares this screen with a remote device you authorize.",
         "NSAppleEventsUsageDescription": "EnDesk injects keyboard and mouse input to let an authorized remote device control this Mac.",
@@ -64,7 +68,11 @@
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
-      "perMachine": false
+      "perMachine": false,
+      "artifactName": "EnDesk-Setup-${version}.${ext}"
+    },
+    "portable": {
+      "artifactName": "EnDesk-Portable-${version}.${ext}"
     },
     "linux": {
       "target": ["AppImage"],

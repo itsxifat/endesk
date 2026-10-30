@@ -1,0 +1,37 @@
+name: Build installers
+
+# Builds the Windows installer/portable exe and the universal macOS dmg/zip.
+# Runs on version tags (v1.2.3) or by hand from the Actions tab.
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            target: --win
+          - os: macos-latest
+            target: --mac
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      # robotjs ships prebuilt binaries, so no install scripts or native compiles are needed.
+      - run: npm ci --ignore-scripts
+      - run: npx electron-builder ${{ matrix.target }} --publish never
+      - uses: actions/upload-artifact@v4
+        with:
+          name: endesk-${{ runner.os }}
+          path: |
+            dist/*.exe
+            dist/*.dmg
+            dist/*.zip
+          if-no-files-found: error
