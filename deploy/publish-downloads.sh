@@ -34,6 +34,17 @@ for name in "${!STABLE[@]}"; do
 done
 [ "$published" -gt 0 ] || { echo "nothing to publish" >&2; exit 1; }
 
+# Windows self-update feed (electron-updater reads downloads/latest.yml). Its
+# file names point into the version folder; publish it last, once the
+# installer and its blockmap are in place.
+if [ -f "$SRC/latest.yml" ] && [ -f "$DL/$VER/EnDesk-Setup-$VER.exe" ]; then
+  grep -qx "version: $VER" "$SRC/latest.yml" || { echo "latest.yml is not for $VER" >&2; exit 1; }
+  [ -f "$SRC/EnDesk-Setup-$VER.exe.blockmap" ] && install -m 0644 "$SRC/EnDesk-Setup-$VER.exe.blockmap" "$DL/$VER/"
+  sed -E "s#^([[:space:]]*-?[[:space:]]*url: )(EnDesk-)#\1$VER/\2#; s#^(path: )(EnDesk-)#\1$VER/\2#" "$SRC/latest.yml" > "$DL/latest.yml.new"
+  chmod 0644 "$DL/latest.yml.new"
+  mv "$DL/latest.yml.new" "$DL/latest.yml"
+fi
+
 # latest.json describes whatever every stable name points at now.
 json="{\"version\":\"$VER\",\"files\":{"
 sep=

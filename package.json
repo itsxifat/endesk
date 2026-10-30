@@ -1,7 +1,7 @@
 {
   "name": "endesk",
   "productName": "EnDesk",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Cross-platform remote desktop (AnyDesk-style) for Windows and macOS. Control one device from another over the network, Windows <-> Mac.",
   "main": "src/main.js",
   "author": "EnDesk",
@@ -16,7 +16,9 @@
     "dist:mac": "electron-builder --mac"
   },
   "dependencies": {
-    "@jitsi/robotjs": "0.6.24"
+    "@jitsi/robotjs": "0.6.24",
+    "electron-updater": "6.8.9",
+    "koffi": "2.16.3"
   },
   "devDependencies": {
     "electron": "45.0.0",
@@ -30,17 +32,34 @@
       "package.json"
     ],
     "asarUnpack": [
-      "**/node_modules/@jitsi/robotjs/**"
+      "**/node_modules/@jitsi/robotjs/**",
+      "**/node_modules/koffi/**"
     ],
     "npmRebuild": false,
+    "publish": [
+      {
+        "provider": "generic",
+        "url": "https://endesk.enfinito.cloud/downloads/"
+      }
+    ],
     "extraMetadata": {
       "main": "src/main.js"
     },
     "mac": {
       "category": "public.app-category.utilities",
       "target": [
-        { "target": "dmg", "arch": ["universal"] },
-        { "target": "zip", "arch": ["universal"] }
+        {
+          "target": "dmg",
+          "arch": [
+            "universal"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "universal"
+          ]
+        }
       ],
       "artifactName": "EnDesk-${version}-mac-${arch}.${ext}",
       "identity": "-",
@@ -54,20 +73,37 @@
         "NSAppleEventsUsageDescription": "EnDesk injects keyboard and mouse input to let an authorized remote device control this Mac.",
         "NSMicrophoneUsageDescription": "Not used by EnDesk.",
         "NSCameraUsageDescription": "Not used by EnDesk."
-      }
+      },
+      "files": [
+        "!**/node_modules/koffi/**"
+      ]
     },
     "dmg": {
       "sign": false
     },
     "win": {
       "target": [
-        { "target": "nsis", "arch": ["x64"] },
-        { "target": "portable", "arch": ["x64"] }
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "files": [
+        "!**/node_modules/koffi/build/koffi/{darwin_*,freebsd_*,linux_*,musl_*,openbsd_*,win32_arm64,win32_ia32}/**",
+        "!**/node_modules/koffi/{src,vendor,doc}/**",
+        "!**/node_modules/koffi/build/koffi/**/*.{exp,lib}"
       ]
     },
     "nsis": {
-      "oneClick": false,
-      "allowToChangeInstallationDirectory": true,
+      "oneClick": true,
       "perMachine": false,
       "artifactName": "EnDesk-Setup-${version}.${ext}"
     },
@@ -75,7 +111,9 @@
       "artifactName": "EnDesk-Portable-${version}.${ext}"
     },
     "linux": {
-      "target": ["AppImage"],
+      "target": [
+        "AppImage"
+      ],
       "category": "Utility"
     }
   }

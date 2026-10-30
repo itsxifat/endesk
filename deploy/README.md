@@ -66,13 +66,20 @@ curl -sS -H 'content-type: application/json' https://api.indexnow.org/indexnow -
 
 1. Bump `version` in `package.json`, commit, then tag and push: `git tag v1.2.3 && git push origin HEAD v1.2.3`.
 2. The **Build installers** workflow builds Windows (NSIS + portable) and macOS
-   (universal dmg + zip) and uploads them as run artifacts.
+   (universal dmg + zip) and uploads them, with `latest.yml` and the blockmaps, as run artifacts.
 3. Download the artifacts, copy them to the server, and publish:
 
    ```bash
-   scp EnDesk-* <server>:endesk-upload/
+   scp EnDesk-* latest.yml <server>:endesk-upload/
    ssh <server> 'sudo /opt/endesk/publish-downloads.sh ~/endesk-upload 1.2.3 && rm -rf ~/endesk-upload'
    ```
+
+   Publishing `latest.yml` is what makes installed Windows copies update themselves:
+   the app checks `downloads/latest.yml` at start and every 4 hours, downloads in the
+   background, and restarts into the new version when no session is running. The
+   Windows installer is one-click and per-user (`%LOCALAPPDATA%\Programs\endesk`), so
+   updates need no admin rights. macOS and the portable exe show an "update available"
+   banner instead (silent macOS updates need an Apple Developer ID signature).
 
 ## Signing
 

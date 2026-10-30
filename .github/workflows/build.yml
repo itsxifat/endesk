@@ -34,4 +34,6 @@ jobs:
             dist/*.exe
             dist/*.dmg
             dist/*.zip
+            dist/*.blockmap
+            dist/latest*.yml
           if-no-files-found: error

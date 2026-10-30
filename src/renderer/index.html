@@ -51,6 +51,11 @@
 
       <!-- Main -->
       <main class="main">
+        <div id="updateBar" class="update-bar hidden" role="status">
+          <span id="updateText"></span>
+          <button id="updateBtn" class="btn small hidden">Download</button>
+        </div>
+
         <!-- HOME / THIS DEVICE -->
         <section class="view active" data-view="home">
           <div id="incoming" class="banner incoming hidden">
@@ -166,7 +171,7 @@
 
           <p class="about">
             EnDesk streams the screen directly between the two computers, encrypted end to end.
-            The server only introduces them.
+            The server only introduces them. <span id="appVersion"></span>
           </p>
         </section>
 

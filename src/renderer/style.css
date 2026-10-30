@@ -201,6 +201,15 @@ h1 { margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -0.02em; }
 .saved-msg { font-size: 13px; color: var(--good); }
 .about { margin: 40px 0 0; padding-top: 20px; border-top: 1px solid var(--line); max-width: 520px; color: var(--faint); font-size: 13px; }
 
+/* ---------- Update notice ---------- */
+.update-bar {
+  max-width: 560px; margin: 0 auto 24px;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 10px 10px 10px 14px; border: 1px solid var(--line); border-radius: 10px;
+  background: var(--bg-2); color: var(--muted); font-size: 13px;
+}
+.main:has(.viewer-view.active) .update-bar { display: none; }
+
 /* ---------- Remote viewer: full window ---------- */
 #app:has(.viewer-view.active) .sidebar { display: none; }
 .main:has(.viewer-view.active) { padding: 0; overflow: hidden; }

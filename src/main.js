@@ -9,6 +9,7 @@ const {
   systemPreferences,
   shell,
   nativeTheme,
+  net,
 } = require('electron');
 const path = require('path');
 const fs = require('fs');
@@ -92,6 +93,38 @@ function screenSize() {
   return { width: s.width, height: s.height };
 }
 
+// ---------------------------------------------------------------------------
+// Keyboard. Keys held down by the remote viewer are tracked so modifiers can be
+// applied and everything is released when a session ends.
+// ---------------------------------------------------------------------------
+const heldKeys = new Set();
+const MODIFIER_KEYS = new Set(['shift', 'right_shift', 'control', 'left_control', 'right_control', 'alt', 'right_alt', 'command']);
+
+function toggleKey(key, down) {
+  if (down) heldKeys.add(key);
+  else heldKeys.delete(key);
+  if (process.platform === 'darwin') {
+    // macOS stamps every injected key event with an explicit modifier mask, so
+    // the held modifiers must be passed along or Shift/⌘/⌥/⌃ are lost.
+    // Windows tracks modifier state itself from the separate key presses.
+    const mods = [...heldKeys].filter((k) => MODIFIER_KEYS.has(k));
+    robot.keyToggle(key, down ? 'down' : 'up', mods);
+  } else {
+    robot.keyToggle(key, down ? 'down' : 'up');
+  }
+}
+
+function releaseHeldKeys() {
+  if (!robot) return;
+  for (const key of [...heldKeys]) {
+    try {
+      toggleKey(key, false);
+    } catch {
+      heldKeys.delete(key);
+    }
+  }
+}
+
 // Inject a single input event coming from the remote viewer.
 // Coordinates arrive normalised (0..1) relative to the captured screen, so we
 // scale them to whatever resolution/DPI this machine actually uses. This is
@@ -126,10 +159,10 @@ function injectInput(ev) {
         robot.scrollMouse(Math.round(ev.dx || 0), Math.round(ev.dy || 0));
         break;
       case 'kd':
-        if (ev.key) robot.keyToggle(ev.key, 'down');
+        if (typeof ev.key === 'string') toggleKey(ev.key, true);
         break;
       case 'ku':
-        if (ev.key) robot.keyToggle(ev.key, 'up');
+        if (typeof ev.key === 'string') toggleKey(ev.key, false);
         break;
       case 'type':
         if (typeof ev.s === 'string') robot.typeString(ev.s);
@@ -178,7 +211,6 @@ function createWindow() {
     minHeight: 560,
     backgroundColor: nativeTheme.shouldUseDarkColors ? '#0b0b0b' : '#ffffff',
     title: 'EnDesk',
-    autoHideMenuBar: true,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -186,11 +218,118 @@ function createWindow() {
       sandbox: false,
     },
   });
+  // No menu bar on Windows/Linux: Alt would otherwise pop it up mid-session.
+  if (process.platform !== 'darwin') mainWindow.removeMenu();
 
   mainWindow.loadFile(path.join(__dirname, 'renderer', 'index.html'));
+  mainWindow.on('focus', updateKeyCapture);
+  mainWindow.on('blur', updateKeyCapture);
   mainWindow.on('closed', () => {
     mainWindow = null;
+    updateKeyCapture();
   });
+}
+
+// ---------------------------------------------------------------------------
+// System keys while controlling (Windows): Windows key, Alt+Tab, Alt+F4, ...
+// are taken from Windows only while a session has control and EnDesk is the
+// focused window.
+// ---------------------------------------------------------------------------
+let keyHook = null;
+let keyCaptureWanted = false;
+
+function updateKeyCapture() {
+  if (process.platform !== 'win32') return;
+  const on = keyCaptureWanted && !!mainWindow && mainWindow.isFocused();
+  try {
+    if (!on) {
+      if (keyHook) keyHook.stop();
+      return;
+    }
+    if (!keyHook) keyHook = require('./keyhook-win');
+    keyHook.start((code, down) => {
+      if (mainWindow) mainWindow.webContents.send('endesk:hook-key', { code, down });
+    });
+  } catch (err) {
+    console.warn('[endesk] keyboard hook unavailable:', err.message);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Updates. The Windows installer updates itself (electron-updater, from the
+// same server as the downloads) and restarts when no session is running.
+// macOS and the portable exe can't replace themselves without a paid signing
+// certificate, so they show a banner linking to the new download instead.
+// ---------------------------------------------------------------------------
+const UPDATE_FEED = 'https://endesk.enfinito.cloud/downloads/';
+const UPDATE_EVERY = 4 * 60 * 60 * 1000;
+let autoUpdater = null;
+let updateReady = null; // version downloaded and waiting to install
+let lastUpdate = null; // last state sent to the window
+let sessionActive = false;
+
+function notifyUpdate(info) {
+  lastUpdate = info;
+  if (mainWindow) mainWindow.webContents.send('endesk:update', info);
+}
+
+function newerThan(a, b) {
+  const pa = String(a).split('.').map(Number);
+  const pb = String(b).split('.').map(Number);
+  for (let i = 0; i < 3; i++) {
+    if ((pa[i] || 0) !== (pb[i] || 0)) return (pa[i] || 0) > (pb[i] || 0);
+  }
+  return false;
+}
+
+function installUpdateIfIdle() {
+  if (!updateReady) return;
+  if (sessionActive) {
+    notifyUpdate({ state: 'ready', version: updateReady });
+    return;
+  }
+  notifyUpdate({ state: 'installing', version: updateReady });
+  // A moment to read the banner, then restart into the new version silently.
+  setTimeout(() => {
+    if (!sessionActive) autoUpdater.quitAndInstall(true, true);
+    else notifyUpdate({ state: 'ready', version: updateReady });
+  }, 8000);
+}
+
+async function checkLatestRelease() {
+  try {
+    const res = await net.fetch(UPDATE_FEED + 'latest.json', { cache: 'no-cache' });
+    const latest = await res.json();
+    const name = process.platform === 'darwin' ? 'EnDesk-mac.dmg' : 'EnDesk-Portable.exe';
+    const entry = latest.files && latest.files[name];
+    const version = entry && entry.file.split('/')[0];
+    if (version && newerThan(version, app.getVersion())) {
+      notifyUpdate({ state: 'available', version, url: UPDATE_FEED + name });
+    }
+  } catch {
+    /* offline or server busy: try again next time */
+  }
+}
+
+function setupUpdates() {
+  if (!app.isPackaged) return;
+  const portable = !!process.env.PORTABLE_EXECUTABLE_DIR;
+  if (process.platform === 'win32' && !portable) {
+    ({ autoUpdater } = require('electron-updater'));
+    autoUpdater.autoDownload = true;
+    autoUpdater.autoInstallOnAppQuit = true;
+    autoUpdater.on('update-downloaded', (info) => {
+      updateReady = info.version;
+      installUpdateIfIdle();
+    });
+    autoUpdater.on('error', (err) => console.warn('[endesk] update failed:', err.message));
+    const check = () => autoUpdater.checkForUpdates().catch(() => {});
+    check();
+    setInterval(check, UPDATE_EVERY);
+  } else {
+    checkLatestRelease();
+    setInterval(checkLatestRelease, UPDATE_EVERY);
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -209,6 +348,8 @@ ipcMain.handle('endesk:init', () => {
     canHost: !!robot,
     robotError: robotError ? String(robotError.message || robotError) : null,
     permissions: permissionStatus(),
+    version: app.getVersion(),
+    update: lastUpdate,
   };
 });
 
@@ -279,6 +420,19 @@ ipcMain.handle('endesk:open-external', (_e, url) => {
 // Input is sent one event at a time (fire-and-forget) for lowest latency.
 ipcMain.on('endesk:input', (_e, ev) => injectInput(ev));
 
+// Session over: let go of any key the remote viewer was still holding.
+ipcMain.on('endesk:release-input', () => releaseHeldKeys());
+
+ipcMain.on('endesk:key-capture', (_e, on) => {
+  keyCaptureWanted = !!on;
+  updateKeyCapture();
+});
+
+ipcMain.on('endesk:session-active', (_e, active) => {
+  sessionActive = !!active;
+  if (!sessionActive) installUpdateIfIdle();
+});
+
 // ---------------------------------------------------------------------------
 // App lifecycle.
 // ---------------------------------------------------------------------------
@@ -294,6 +448,7 @@ if (!app.requestSingleInstanceLock()) {
 
   app.whenReady().then(() => {
     createWindow();
+    setupUpdates();
     app.on('activate', () => {
       if (BrowserWindow.getAllWindows().length === 0) createWindow();
     });

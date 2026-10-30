@@ -58,6 +58,7 @@ function showView(name) {
   state.currentView = name;
   document.querySelectorAll('.view').forEach((v) => v.classList.toggle('active', v.dataset.view === name));
   document.querySelectorAll('.nav-btn').forEach((b) => b.classList.toggle('active', b.dataset.view === name));
+  syncKeyCapture();
 }
 
 document.querySelectorAll('.nav-btn').forEach((btn) => {
@@ -259,6 +260,7 @@ function newPeerConnection() {
 
 async function beginSession(role) {
   state.role = role;
+  window.endesk.setSessionActive(true);
   if (role === 'host') {
     await startHosting();
   } else {
@@ -324,6 +326,7 @@ function endHosting() {
   $('hostLive').classList.add('hidden');
   teardownRtc();
   state.role = null;
+  window.endesk.setSessionActive(false);
   // A session password works for one session: once it ends, issue a new one.
   refreshSessionPassword();
 }
@@ -393,6 +396,10 @@ async function onRtcSignal(data) {
 }
 
 function teardownRtc() {
+  // Viewer: release held keys while the channel is still open.
+  releaseAllKeys();
+  // Host: let go of anything the remote side was holding down here.
+  window.endesk.releaseInput();
   if (state.inputChannel) {
     try { state.inputChannel.close(); } catch { /* ignore */ }
     state.inputChannel = null;
@@ -409,16 +416,17 @@ function teardownRtc() {
   if (v.srcObject) {
     v.srcObject = null;
   }
-  releaseAllKeys();
 }
 
 function resetSession(goHome) {
   teardownRtc();
   state.role = null;
   state.pendingRid = null;
+  window.endesk.setSessionActive(false);
   $('hostLive').classList.add('hidden');
   $('incoming').classList.add('hidden');
   if (goHome) showView('home');
+  syncKeyCapture();
 }
 
 // ---------------------------------------------------------------------------
@@ -511,24 +519,49 @@ video.addEventListener('wheel', (e) => {
   sendInput({ t: 'w', dx, dy });
 }, { passive: false });
 
-function onKey(e, down) {
-  if (!controlActive()) return;
-  const swap = $('swapCmd').checked;
-  const name = EndeskKeymap.mapCode(e.code, swap);
-  if (!name) return;
-  e.preventDefault();
-  e.stopPropagation();
+// Sends one physical key (a KeyboardEvent.code) to the remote computer.
+function sendKey(code, down) {
+  const name = EndeskKeymap.mapCode(code, $('swapCmd').checked);
+  if (!name) return false;
   if (down) {
     state.pressedKeys.add(name);
     sendInput({ t: 'kd', key: name });
-  } else {
-    state.pressedKeys.delete(name);
-    sendInput({ t: 'ku', key: name });
+    return true;
   }
+  // macOS sends no key-up for keys released while ⌘ is held: release them
+  // together with ⌘ so they don't stay pressed on the remote computer.
+  if (state.cfg.platform === 'darwin' && (code === 'MetaLeft' || code === 'MetaRight')) {
+    for (const k of state.pressedKeys) {
+      if (!EndeskKeymap.MODIFIER_NAMES.has(k)) {
+        state.pressedKeys.delete(k);
+        sendInput({ t: 'ku', key: k });
+      }
+    }
+  }
+  state.pressedKeys.delete(name);
+  sendInput({ t: 'ku', key: name });
+  return true;
+}
+
+function onKey(e, down) {
+  if (!controlActive()) return;
+  if (!sendKey(e.code, down)) return;
+  e.preventDefault();
+  e.stopPropagation();
 }
 
 window.addEventListener('keydown', (e) => onKey(e, true), true);
 window.addEventListener('keyup', (e) => onKey(e, false), true);
+
+// Windows: system keys (Windows key, Alt+Tab, Alt+F4, ...) arrive from the
+// keyboard hook instead of as DOM events while a session has control.
+function syncKeyCapture() {
+  window.endesk.setKeyCapture(controlActive());
+}
+window.endesk.onHookKey((k) => {
+  if (controlActive()) sendKey(k.code, k.down);
+});
+$('ctrlEnabled').addEventListener('change', syncKeyCapture);
 
 function releaseAllKeys() {
   for (const name of state.pressedKeys) sendInput({ t: 'ku', key: name });
@@ -619,11 +652,37 @@ $('grantAcc').addEventListener('click', async () => {
 });
 
 // ---------------------------------------------------------------------------
+// Updates (the Windows installer updates itself; elsewhere, link the download)
+// ---------------------------------------------------------------------------
+let updateUrl = null;
+
+function showUpdate(info) {
+  if (!info) return;
+  const text = {
+    available: `EnDesk ${info.version} is available.`,
+    ready: `EnDesk ${info.version} will install when this session ends.`,
+    installing: `Updating to EnDesk ${info.version}. EnDesk restarts in a few seconds.`,
+  }[info.state];
+  if (!text) return;
+  $('updateText').textContent = text;
+  updateUrl = info.state === 'available' ? info.url : null;
+  $('updateBtn').classList.toggle('hidden', !updateUrl);
+  $('updateBar').classList.remove('hidden');
+}
+
+$('updateBtn').addEventListener('click', () => {
+  if (updateUrl) window.endesk.openExternal(updateUrl);
+});
+window.endesk.onUpdate(showUpdate);
+
+// ---------------------------------------------------------------------------
 // Boot
 // ---------------------------------------------------------------------------
 async function boot() {
   state.cfg = await window.endesk.init();
 
+  showUpdate(state.cfg.update);
+  $('appVersion').textContent = 'Version ' + state.cfg.version + '.';
   $('deviceId').textContent = formatId(state.cfg.deviceId);
   $('relayUrl').value = state.cfg.relayUrl;
   $('unattendedPw').value = state.cfg.unattendedPassword || '';
