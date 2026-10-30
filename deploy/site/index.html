@@ -2,151 +2,443 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>EnDesk — Download</title>
-  <meta name="description" content="EnDesk remote desktop for Windows and macOS." />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>EnDesk — Remote desktop for Windows and Mac</title>
+  <meta name="description" content="Control another computer from yours. Windows and Mac, in either direction. Free download." />
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#0b0b0b" media="(prefers-color-scheme: dark)" />
+  <meta property="og:title" content="EnDesk — Remote desktop for Windows and Mac" />
+  <meta property="og:description" content="Control another computer from yours. Windows and Mac, in either direction." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://endesk.enfinito.cloud/" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230f0f0f'/%3E%3Cpath d='M22 17h21v6H29v6h12v6H29v6h14v6H22z' fill='%23fff'/%3E%3C/svg%3E" />
   <style>
     :root {
-      --bg: #0f1221;
-      --bg-2: #171b2e;
-      --panel: #1c2138;
-      --line: #2c3357;
-      --text: #e8ebf7;
-      --muted: #9aa3c7;
-      --accent: #5b7cfa;
-      --accent-2: #7a93ff;
-      --good: #35d07f;
-      --bad: #ff5c6c;
-      --radius: 14px;
-      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --bg: #ffffff;
+      --bg-2: #f6f6f5;
+      --text: #111111;
+      --muted: #62625f;
+      --faint: #8d8d89;
+      --line: #e6e6e3;
+      --btn: #111111;
+      --btn-text: #ffffff;
+      --btn-hover: #2b2b2b;
+      --good: #1a9a52;
+      --win: #ffffff;
+      --win-2: #f8f8f7;
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 24px 48px -12px rgba(0, 0, 0, 0.10);
+      --radius: 12px;
+      --wrap: 1080px;
+      --gutter: 20px;
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI Variable Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0b0b0b;
+        --bg-2: #151515;
+        --text: #f1f1f0;
+        --muted: #a2a29e;
+        --faint: #74746f;
+        --line: #252524;
+        --btn: #f1f1f0;
+        --btn-text: #0b0b0b;
+        --btn-hover: #d8d8d6;
+        --good: #3cc97a;
+        --win: #121212;
+        --win-2: #171717;
+        --shadow: 0 1px 2px rgba(0, 0, 0, 0.5), 0 24px 48px -12px rgba(0, 0, 0, 0.6);
+      }
     }
     * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; scroll-padding-top: 72px; }
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } * { transition: none !important; } }
     body {
-      margin: 0;
-      font-family: var(--font);
-      background: radial-gradient(1200px 600px at 50% -200px, #1f2650, var(--bg));
-      background-color: var(--bg);
-      color: var(--text);
-      line-height: 1.5;
+      margin: 0; background: var(--bg); color: var(--text);
+      font: 16px/1.6 var(--font); -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+      overflow-x: hidden;
     }
-    main { max-width: 960px; margin: 0 auto; padding: 48px 16px 64px; }
-    header { display: flex; align-items: center; gap: 14px; }
-    .logo {
-      width: 48px; height: 48px; border-radius: 12px; flex: none;
-      display: grid; place-items: center; font-weight: 800; font-size: 24px;
-      background: linear-gradient(135deg, var(--accent), var(--accent-2));
-    }
-    h1 { margin: 0; font-size: 28px; }
-    .sub { margin: 0; color: var(--muted); }
-    .status { margin-left: auto; font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 8px; }
-    .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
-    .dot.on { background: var(--good); }
-    .dot.off { background: var(--bad); }
-    .lead { font-size: 18px; color: var(--muted); margin: 32px 0 24px; max-width: 640px; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
-    .card {
-      background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
-      padding: 24px; display: flex; flex-direction: column; gap: 12px;
-    }
-    .card.mine { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
-    .card h2 { margin: 0; font-size: 20px; display: flex; align-items: center; gap: 10px; }
-    .tag { font-size: 12px; font-weight: 600; color: var(--accent-2); }
-    .meta { color: var(--muted); font-size: 14px; margin: 0; }
+    a { color: inherit; }
+    svg { display: block; }
+    :focus-visible { outline: 2px solid var(--text); outline-offset: 3px; border-radius: 6px; }
+    .wrap { width: 100%; max-width: var(--wrap); margin: 0 auto; padding: 0 var(--gutter); }
+    @media (min-width: 720px) { :root { --gutter: 32px; } }
+
+    /* Nav */
+    .nav { position: sticky; top: 0; z-index: 10; background: var(--bg); border-bottom: 1px solid var(--line); }
+    .nav-in { display: flex; align-items: center; height: 60px; gap: 28px; }
+    .brand { display: flex; align-items: center; gap: 9px; text-decoration: none; font-weight: 600; font-size: 16px; letter-spacing: -0.01em; }
+    .mark { width: 24px; height: 24px; border-radius: 6px; background: var(--text); color: var(--bg); display: grid; place-items: center; font-size: 13px; font-weight: 700; }
+    .links { display: none; gap: 24px; font-size: 14px; }
+    .links a { color: var(--muted); text-decoration: none; }
+    .links a:hover { color: var(--text); }
+    .nav .btn { margin-left: auto; }
+    @media (min-width: 820px) { .links { display: flex; } }
+
+    /* Buttons */
     .btn {
-      display: inline-block; text-align: center; text-decoration: none; font-weight: 600;
-      padding: 12px 18px; border-radius: 10px; background: var(--accent); color: #fff;
+      display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+      height: 46px; padding: 0 20px; border-radius: 10px; border: 1px solid var(--btn);
+      background: var(--btn); color: var(--btn-text); text-decoration: none;
+      font: 500 15px/1 var(--font); cursor: pointer; transition: background 0.15s ease, border-color 0.15s ease;
     }
-    .btn:hover { background: var(--accent-2); }
-    .alt { font-size: 14px; color: var(--muted); }
-    a { color: var(--accent-2); }
-    section { margin-top: 40px; }
-    h3 { font-size: 18px; margin: 0 0 12px; }
-    ol, ul { margin: 0; padding-left: 22px; }
-    li { margin: 6px 0; }
-    .two { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; }
-    code { background: var(--bg-2); border: 1px solid var(--line); border-radius: 6px; padding: 1px 6px; font-size: 13px; overflow-wrap: anywhere; }
-    .sums { font-size: 12px; color: var(--muted); }
-    .sums code { font-size: 11px; }
-    footer { margin-top: 48px; color: var(--muted); font-size: 13px; }
+    .btn:hover { background: var(--btn-hover); border-color: var(--btn-hover); }
+    .btn svg { width: 17px; height: 17px; flex: none; }
+    .btn-2 { background: transparent; color: var(--text); border-color: var(--line); }
+    .btn-2:hover { background: var(--bg-2); border-color: var(--line); }
+    .btn-sm { height: 36px; padding: 0 14px; font-size: 14px; border-radius: 8px; }
+
+    /* Hero */
+    .hero { text-align: center; padding: 88px 0 0; }
+    @media (min-width: 720px) { .hero { padding-top: 128px; } }
+    h1 {
+      margin: 0 auto; max-width: 13em;
+      font-size: clamp(40px, 7.2vw, 68px); line-height: 1.03; font-weight: 600; letter-spacing: -0.04em;
+      text-wrap: balance;
+    }
+    .lead { margin: 22px auto 0; max-width: 32em; color: var(--muted); font-size: clamp(17px, 2vw, 19px); line-height: 1.55; text-wrap: pretty; }
+    .cta { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 36px; }
+    .cta-meta { margin: 16px 0 0; color: var(--faint); font-size: 13px; }
+    @media (max-width: 519px) { .cta .btn { width: 100%; } }
+    .phone-note {
+      margin: 28px auto 0; max-width: 440px; padding: 16px 18px; text-align: left;
+      border: 1px solid var(--line); border-radius: var(--radius); background: var(--bg-2); font-size: 14px; color: var(--muted);
+    }
+    .phone-note p { margin: 0 0 12px; }
+    .phone-note strong { color: var(--text); font-weight: 600; }
+
+    /* Product illustration */
+    .shot { margin: 72px auto 0; max-width: 860px; }
+    .window { border: 1px solid var(--line); border-radius: 14px; overflow: hidden; background: var(--win); box-shadow: var(--shadow); text-align: left; }
+    .bar { display: flex; align-items: center; gap: 7px; height: 38px; padding: 0 14px; border-bottom: 1px solid var(--line); background: var(--win-2); }
+    .bar i { width: 10px; height: 10px; border-radius: 50%; background: var(--line); }
+    .bar span { margin: 0 auto; padding-right: 51px; font-size: 12px; color: var(--faint); }
+    .wbody { display: grid; grid-template-columns: 180px 1fr; min-height: 340px; }
+    .wside { border-right: 1px solid var(--line); background: var(--win-2); padding: 16px 10px; display: flex; flex-direction: column; gap: 2px; font-size: 13px; color: var(--muted); }
+    .wside div { padding: 7px 10px; border-radius: 7px; }
+    .wside .on { background: var(--bg-2); color: var(--text); font-weight: 500; }
+    @media (prefers-color-scheme: dark) { .wside .on { background: #222; } }
+    .wmain { padding: 32px 36px; }
+    .wlabel { font-size: 12px; color: var(--faint); margin: 0 0 6px; }
+    .wid { font: 500 clamp(26px, 4.4vw, 40px)/1.1 var(--mono); letter-spacing: 0.02em; white-space: nowrap; }
+    .wrow { display: flex; gap: 48px; margin-top: 28px; flex-wrap: wrap; }
+    .wpw { font: 500 20px/1.2 var(--mono); }
+    .wstate { display: flex; align-items: center; gap: 8px; margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted); }
+    .wstate b { width: 7px; height: 7px; border-radius: 50%; background: var(--good); }
+    @media (max-width: 599px) {
+      .shot { margin-top: 56px; }
+      .wbody { grid-template-columns: 1fr; min-height: 0; }
+      .wside { display: none; }
+      .wmain { padding: 22px 20px; }
+      .wrow { gap: 28px; }
+    }
+
+    /* Sections */
+    .section { padding: 96px 0; }
+    .section + .section { border-top: 1px solid var(--line); }
+    @media (max-width: 719px) { .section { padding: 64px 0; } }
+    .hero + .section { margin-top: 96px; border-top: 1px solid var(--line); }
+    @media (max-width: 719px) { .hero + .section { margin-top: 64px; } }
+    h2 { margin: 0; font-size: clamp(26px, 3.6vw, 36px); line-height: 1.15; font-weight: 600; letter-spacing: -0.03em; }
+    .sub { margin: 10px 0 0; color: var(--muted); max-width: 34em; }
+    .head { margin-bottom: 44px; }
+
+    /* Downloads */
+    .dl { border: 1px solid var(--line); border-radius: var(--radius); }
+    .dl-row { display: grid; gap: 16px; padding: 24px; align-items: center; }
+    .dl-row + .dl-row { border-top: 1px solid var(--line); }
+    @media (min-width: 720px) { .dl-row { grid-template-columns: 40px 1fr auto; gap: 20px; padding: 28px; } }
+    .os { width: 40px; height: 40px; border-radius: 10px; border: 1px solid var(--line); display: grid; place-items: center; }
+    .os svg { width: 19px; height: 19px; }
+    .dl-row h3 { margin: 0; font-size: 17px; font-weight: 600; letter-spacing: -0.01em; display: flex; align-items: center; gap: 10px; }
+    .dl-row p { margin: 3px 0 0; color: var(--muted); font-size: 14px; }
+    .tag { font-size: 12px; font-weight: 500; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 1px 9px; }
+    .acts { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+    .acts a.alt { font-size: 14px; color: var(--muted); text-underline-offset: 3px; }
+    .acts a.alt:hover { color: var(--text); }
+    @media (max-width: 719px) {
+      .dl-row { grid-template-columns: 40px 1fr; }
+      .acts { grid-column: 1 / -1; flex-direction: column-reverse; align-items: stretch; gap: 12px; }
+      .acts a.alt { text-align: center; }
+    }
+    .sums { margin-top: 20px; font-size: 13px; color: var(--muted); }
+    .sums summary { cursor: pointer; width: fit-content; }
+    .sums ul { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 10px; }
+    .sums code { display: block; font: 12px/1.5 var(--mono); color: var(--faint); overflow-wrap: anywhere; }
+
+    /* Features */
+    .grid3 { display: grid; gap: 36px 40px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); }
+    .item { border-top: 1px solid var(--line); padding-top: 20px; }
+    .item h3 { margin: 0 0 6px; font-size: 16px; font-weight: 600; letter-spacing: -0.01em; }
+    .item p { margin: 0; color: var(--muted); font-size: 15px; }
+    .num { display: block; font: 500 13px var(--mono); color: var(--faint); margin-bottom: 14px; }
+
+    /* Help */
+    .grid2 { display: grid; gap: 48px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); }
+    .grid2 h3 { margin: 0 0 14px; font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 9px; }
+    .grid2 h3 svg { width: 16px; height: 16px; }
+    .grid2 ol { margin: 0; padding-left: 20px; display: grid; gap: 10px; color: var(--muted); font-size: 15px; }
+    .grid2 li::marker { color: var(--faint); }
+    .grid2 strong { color: var(--text); font-weight: 600; }
+    .aside { margin: 18px 0 0; font-size: 14px; color: var(--faint); }
+    .aside a { color: var(--muted); text-underline-offset: 3px; }
+    code { font: 13px var(--mono); background: var(--bg-2); border: 1px solid var(--line); border-radius: 5px; padding: 1px 5px; color: var(--text); overflow-wrap: anywhere; }
+
+    /* FAQ */
+    .faq { max-width: 760px; border-top: 1px solid var(--line); }
+    .faq details { border-bottom: 1px solid var(--line); }
+    .faq summary { list-style: none; cursor: pointer; padding: 20px 40px 20px 0; position: relative; font-weight: 500; font-size: 16px; }
+    .faq summary::-webkit-details-marker { display: none; }
+    .faq summary::before, .faq summary::after {
+      content: ""; position: absolute; right: 4px; top: 50%; width: 12px; height: 1.5px; background: var(--muted); transition: transform 0.2s ease;
+    }
+    .faq summary::after { transform: rotate(90deg); }
+    .faq details[open] summary::after { transform: rotate(0deg); }
+    .faq details p { margin: 0; padding: 0 40px 22px 0; color: var(--muted); font-size: 15px; }
+
+    /* Footer */
+    footer { border-top: 1px solid var(--line); padding: 28px 0 calc(28px + env(safe-area-inset-bottom)); font-size: 13px; color: var(--faint); }
+    .foot { display: flex; flex-wrap: wrap; gap: 12px 28px; align-items: center; justify-content: space-between; }
+    .foot nav { display: flex; gap: 20px; }
+    .foot a { color: var(--muted); text-decoration: none; }
+    .foot a:hover { color: var(--text); }
+    .status { display: inline-flex; align-items: center; gap: 7px; }
+    .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--line); }
+    .dot.on { background: var(--good); }
+    .dot.off { background: #d64545; }
   </style>
 </head>
 <body>
-  <main>
-    <header>
-      <div class="logo" aria-hidden="true">E</div>
-      <div>
-        <h1>EnDesk</h1>
-        <p class="sub">Remote desktop for Windows and macOS</p>
-      </div>
-      <div class="status" title="Connection server status"><span id="dot" class="dot"></span><span id="status">Checking server…</span></div>
-    </header>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <symbol id="i-win" viewBox="0 0 24 24"><path fill="currentColor" d="M3 5.1 10.4 4v7.2H3zM11.4 3.9 21 2.5v8.7h-9.6zM3 12.3h7.4v7.2L3 18.4zM11.4 12.3H21V21l-9.6-1.4z"/></symbol>
+      <symbol id="i-mac" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M9 6a3 3 0 1 0-3 3h12a3 3 0 1 0-3-3v12a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3z"/></symbol>
+    </defs>
+  </svg>
 
-    <p class="lead">
-      Control one computer from another — Windows ↔ Mac in either direction.
-      Share the 9-digit ID and password shown in EnDesk, and connect.
-    </p>
-
-    <div class="grid">
-      <div class="card" id="card-win">
-        <h2>Windows <span class="tag" id="tag-win"></span></h2>
-        <p class="meta">Windows 10 and 11, 64-bit · <span id="meta-win">installer</span></p>
-        <a class="btn" href="downloads/EnDesk-Setup.exe">Download for Windows</a>
-        <span class="alt">No install rights? <a href="downloads/EnDesk-Portable.exe">Portable version</a> (runs without installing).</span>
-      </div>
-      <div class="card" id="card-mac">
-        <h2>macOS <span class="tag" id="tag-mac"></span></h2>
-        <p class="meta">Apple Silicon and Intel · <span id="meta-mac">disk image</span></p>
-        <a class="btn" href="downloads/EnDesk-mac.dmg">Download for Mac</a>
-        <span class="alt">Prefer a zip? <a href="downloads/EnDesk-mac.zip">Download .zip</a></span>
-      </div>
+  <header class="nav">
+    <div class="wrap nav-in">
+      <a class="brand" href="#top"><span class="mark" aria-hidden="true">E</span>EnDesk</a>
+      <nav class="links" aria-label="Sections">
+        <a href="#download">Download</a>
+        <a href="#features">Features</a>
+        <a href="#help">Help</a>
+        <a href="#faq">FAQ</a>
+      </nav>
+      <a class="btn btn-sm" href="#download">Download</a>
     </div>
+  </header>
 
-    <section class="two">
-      <div>
-        <h3>First launch on Windows</h3>
-        <ol>
-          <li>Run <code>EnDesk-Setup.exe</code>.</li>
-          <li>If “Windows protected your PC” appears, click <strong>More info</strong> → <strong>Run anyway</strong>.</li>
-          <li>Finish the installer and open EnDesk from the Start menu.</li>
-        </ol>
+  <main id="top">
+    <section class="hero">
+      <div class="wrap">
+        <h1>Control any computer from yours.</h1>
+        <p class="lead">
+          EnDesk connects Windows and Mac, in either direction. Share an ID and a password,
+          then use the other screen, keyboard and mouse as if you were there.
+        </p>
+        <div class="cta" id="hero-cta">
+          <a class="btn" data-os="win" href="downloads/EnDesk-Setup.exe" download><svg><use href="#i-win"/></svg>Download for Windows</a>
+          <a class="btn" data-os="mac" href="downloads/EnDesk-mac.dmg" download><svg><use href="#i-mac"/></svg>Download for Mac</a>
+        </div>
+        <p class="cta-meta" id="hero-meta">Free · Windows 10 and 11 · macOS 12 or later</p>
+
+        <div class="phone-note" id="phone-note" hidden>
+          <p><strong>EnDesk is a desktop app.</strong> Open this page on your Windows PC or Mac to install it.</p>
+          <button class="btn btn-2 btn-sm" id="share-btn" type="button">Copy link</button>
+        </div>
+
+        <div class="shot" aria-hidden="true">
+          <div class="window">
+            <div class="bar"><i></i><i></i><i></i><span>EnDesk</span></div>
+            <div class="wbody">
+              <div class="wside">
+                <div class="on">This device</div>
+                <div>Connect</div>
+                <div>Settings</div>
+              </div>
+              <div class="wmain">
+                <p class="wlabel">Your ID</p>
+                <div class="wid">482 913 557</div>
+                <div class="wrow">
+                  <div><p class="wlabel">Password</p><div class="wpw">k7m2qp</div></div>
+                  <div><p class="wlabel">Incoming</p><div style="font-size:15px">Ask me first</div></div>
+                </div>
+                <div class="wstate"><b></b>Ready for connections</div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-      <div>
-        <h3>First launch on Mac</h3>
-        <ol>
-          <li>Open the <code>.dmg</code> and drag <strong>EnDesk</strong> into <strong>Applications</strong>.</li>
-          <li>Open EnDesk. If macOS says it can’t verify the app, open <strong>System Settings → Privacy &amp; Security</strong> and click <strong>Open Anyway</strong>.</li>
-          <li>To let this Mac be controlled, allow EnDesk under <strong>Screen Recording</strong> and <strong>Accessibility</strong> in the same settings page, then reopen EnDesk.</li>
-        </ol>
+    </section>
+
+    <section class="section" id="download">
+      <div class="wrap">
+        <div class="head">
+          <h2>Download</h2>
+          <p class="sub">Install EnDesk on both computers: the one you use, and the one you want to reach.</p>
+        </div>
+        <div class="dl">
+          <div class="dl-row" id="row-win">
+            <span class="os"><svg><use href="#i-win"/></svg></span>
+            <div>
+              <h3>Windows <span class="tag" id="tag-win" hidden>Your system</span></h3>
+              <p>Windows 10 and 11, 64-bit · <span id="meta-win">Installer</span></p>
+            </div>
+            <div class="acts">
+              <a class="alt" href="downloads/EnDesk-Portable.exe" download>Portable .exe</a>
+              <a class="btn" href="downloads/EnDesk-Setup.exe" download>Download</a>
+            </div>
+          </div>
+          <div class="dl-row" id="row-mac">
+            <span class="os"><svg><use href="#i-mac"/></svg></span>
+            <div>
+              <h3>macOS <span class="tag" id="tag-mac" hidden>Your system</span></h3>
+              <p>macOS 12 or later, Apple Silicon and Intel · <span id="meta-mac">Disk image</span></p>
+            </div>
+            <div class="acts">
+              <a class="alt" href="downloads/EnDesk-mac.zip" download>.zip</a>
+              <a class="btn" href="downloads/EnDesk-mac.dmg" download>Download</a>
+            </div>
+          </div>
+        </div>
+        <details class="sums" id="sums" hidden>
+          <summary>SHA-256 checksums</summary>
+          <ul id="sum-list"></ul>
+        </details>
       </div>
     </section>
 
-    <section>
-      <h3>Connect</h3>
-      <ol>
-        <li>On the computer you want to control, open EnDesk and read its <strong>ID</strong> and <strong>password</strong>.</li>
-        <li>On your computer, open EnDesk → <strong>Connect</strong>, enter that ID and password.</li>
-        <li>The other side clicks <strong>Accept</strong> (or set a permanent password in Settings for unattended access).</li>
-      </ol>
+    <section class="section" id="features">
+      <div class="wrap">
+        <div class="head">
+          <h2>Simple, and it stays out of the way.</h2>
+        </div>
+        <div class="grid3">
+          <div class="item"><h3>Windows and Mac</h3><p>Control a Mac from a PC or a PC from a Mac. ⌘ can map to Ctrl so shortcuts feel natural.</p></div>
+          <div class="item"><h3>Direct connection</h3><p>Screen and input go straight between the two computers for smooth video and quick response.</p></div>
+          <div class="item"><h3>Encrypted</h3><p>Every session is encrypted end to end. Our server introduces the computers and never sees the screen.</p></div>
+          <div class="item"><h3>You approve every session</h3><p>A new password each time, and nothing is shared until you click Accept.</p></div>
+          <div class="item"><h3>Unattended access</h3><p>Set a permanent password to reach your own computers when nobody is there.</p></div>
+          <div class="item"><h3>Works across networks</h3><p>Gets through home routers and office firewalls, with a relay when no direct path exists.</p></div>
+        </div>
+      </div>
     </section>
 
-    <section class="sums" id="sums" hidden>
-      <h3>Checksums (SHA-256)</h3>
-      <ul id="sum-list"></ul>
+    <section class="section" id="how">
+      <div class="wrap">
+        <div class="head">
+          <h2>Connected in three steps.</h2>
+        </div>
+        <div class="grid3">
+          <div class="item"><span class="num">01</span><h3>Read the ID</h3><p>Open EnDesk on the computer you want to control. Note its ID and password.</p></div>
+          <div class="item"><span class="num">02</span><h3>Connect</h3><p>On your computer, open EnDesk, choose Connect, and enter that ID and password.</p></div>
+          <div class="item"><span class="num">03</span><h3>Accept</h3><p>The other side clicks Accept. You now see its screen and control it.</p></div>
+        </div>
+      </div>
     </section>
 
-    <footer>Only connect to computers you own or are allowed to access.</footer>
+    <section class="section" id="help">
+      <div class="wrap">
+        <div class="head">
+          <h2>First launch</h2>
+          <p class="sub">Your computer asks once before opening an app downloaded from the web. That’s expected.</p>
+        </div>
+        <div class="grid2">
+          <div>
+            <h3><svg><use href="#i-win"/></svg>Windows</h3>
+            <ol>
+              <li>Open <code>EnDesk-Setup.exe</code> from Downloads.</li>
+              <li>If you see <strong>Windows protected your PC</strong>, choose <strong>More info</strong>, then <strong>Run anyway</strong>.</li>
+              <li>Finish the installer and open EnDesk from the Start menu.</li>
+            </ol>
+            <p class="aside">Can’t install apps on this PC? Use the <a href="downloads/EnDesk-Portable.exe" download>portable version</a>.</p>
+          </div>
+          <div>
+            <h3><svg><use href="#i-mac"/></svg>macOS</h3>
+            <ol>
+              <li>Open the <code>.dmg</code> and drag EnDesk to <strong>Applications</strong>.</li>
+              <li>Open EnDesk. If macOS can’t verify it, go to <strong>System Settings → Privacy &amp; Security</strong> and choose <strong>Open Anyway</strong>.</li>
+              <li>To allow this Mac to be controlled, turn on EnDesk under <strong>Screen Recording</strong> and <strong>Accessibility</strong>, then reopen it.</li>
+            </ol>
+            <p class="aside">Only controlling other computers from this Mac? Skip step 3.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="faq">
+      <div class="wrap">
+        <div class="head">
+          <h2>Questions</h2>
+        </div>
+        <div class="faq">
+          <details>
+            <summary>Does my screen go through your server?</summary>
+            <p>No. The server only helps the two computers find each other. The screen, keyboard and mouse travel directly between them, encrypted. When a network blocks a direct path, an encrypted relay passes the data along without being able to read it.</p>
+          </details>
+          <details>
+            <summary>Can someone connect without my permission?</summary>
+            <p>They need your ID and your current password, and by default you must click Accept. A permanent password only exists if you set one in Settings. Repeated wrong guesses are slowed down automatically.</p>
+          </details>
+          <details>
+            <summary>Why does my computer warn me the first time?</summary>
+            <p>Windows and macOS show a one-time prompt for apps downloaded outside their stores. Follow the First launch steps above; you only do it once.</p>
+          </details>
+          <details>
+            <summary>Is there a phone app?</summary>
+            <p>Not yet. EnDesk runs on Windows and Mac computers.</p>
+          </details>
+        </div>
+      </div>
+    </section>
   </main>
+
+  <footer>
+    <div class="wrap foot">
+      <span class="status"><span class="dot" id="dot"></span><span id="status">Checking connection server</span></span>
+      <span>EnDesk <span id="foot-ver"></span> · Only connect to computers you own or may access.</span>
+      <nav aria-label="Footer">
+        <a href="#download">Download</a>
+        <a href="#help">Help</a>
+        <a href="#faq">FAQ</a>
+      </nav>
+    </div>
+  </footer>
 
   <script>
     (function () {
-      var ua = navigator.userAgent;
-      var mine = /Mac/.test(navigator.platform || ua) ? 'mac' : /Win/.test(navigator.platform || ua) ? 'win' : null;
-      if (mine) {
-        document.getElementById('card-' + mine).classList.add('mine');
-        document.getElementById('tag-' + mine).textContent = 'Your system';
+      var $ = function (id) { return document.getElementById(id); };
+      var ua = navigator.userAgent || '';
+      var touchMac = /Macintosh/.test(ua) && navigator.maxTouchPoints > 1; // iPadOS reports as a Mac
+      var phone = /Android|iPhone|iPad|iPod|Mobile/i.test(ua) || touchMac;
+      var os = phone ? null : /Mac/.test(ua) ? 'mac' : /Windows/.test(ua) ? 'win' : null;
+      var cta = $('hero-cta');
+
+      // The visitor's system goes first; the other platform becomes the secondary button.
+      if (os) {
+        var mine = cta.querySelector('[data-os="' + os + '"]');
+        cta.insertBefore(mine, cta.firstChild);
+        $('tag-' + os).hidden = false;
+      }
+      cta.lastElementChild.classList.add('btn-2');
+
+      if (phone) {
+        $('phone-note').hidden = false;
+        var share = $('share-btn');
+        if (navigator.share) share.textContent = 'Share link';
+        share.addEventListener('click', function () {
+          var url = location.origin + '/';
+          if (navigator.share) {
+            navigator.share({ title: 'EnDesk', text: 'Download EnDesk for Windows or Mac', url: url }).catch(function () {});
+          } else if (navigator.clipboard) {
+            navigator.clipboard.writeText(url).then(function () { share.textContent = 'Link copied'; });
+          }
+        });
       }
 
-      function mb(n) { return (n / 1048576).toFixed(0) + ' MB'; }
+      function mb(n) { return Math.round(n / 1048576) + ' MB'; }
       function ver(file) { var m = /^([^/]+)\//.exec(file || ''); return m ? 'v' + m[1] : ''; }
 
       fetch('downloads/latest.json', { cache: 'no-cache' })
@@ -154,30 +446,37 @@
         .then(function (j) {
           if (!j || !j.files) return;
           var f = j.files;
-          if (f['EnDesk-Setup.exe']) document.getElementById('meta-win').textContent = ver(f['EnDesk-Setup.exe'].file) + ' · ' + mb(f['EnDesk-Setup.exe'].size);
-          if (f['EnDesk-mac.dmg']) document.getElementById('meta-mac').textContent = ver(f['EnDesk-mac.dmg'].file) + ' · ' + mb(f['EnDesk-mac.dmg'].size);
-          var list = document.getElementById('sum-list');
+          var win = f['EnDesk-Setup.exe'];
+          var mac = f['EnDesk-mac.dmg'];
+          if (win) $('meta-win').textContent = ver(win.file) + ', ' + mb(win.size);
+          if (mac) $('meta-mac').textContent = ver(mac.file) + ', ' + mb(mac.size);
+          if (j.version) $('foot-ver').textContent = 'v' + j.version;
+          var pick = os === 'win' ? win : os === 'mac' ? mac : null;
+          if (pick) $('hero-meta').textContent = 'Free · ' + ver(pick.file) + ' · ' + mb(pick.size) +
+            (os === 'win' ? ' · Windows 10 and 11' : ' · macOS 12 or later');
+
+          var list = $('sum-list');
           Object.keys(f).forEach(function (name) {
             var li = document.createElement('li');
             var code = document.createElement('code');
+            li.textContent = f[name].file.split('/').pop();
             code.textContent = f[name].sha256;
-            li.textContent = f[name].file.split('/').pop() + ' ';
             li.appendChild(code);
             list.appendChild(li);
           });
-          document.getElementById('sums').hidden = false;
+          $('sums').hidden = false;
         })
         .catch(function () {});
 
       fetch('health', { cache: 'no-store' })
         .then(function (r) { return r.json(); })
         .then(function (h) {
-          document.getElementById('dot').className = 'dot ' + (h.ok ? 'on' : 'off');
-          document.getElementById('status').textContent = h.ok ? 'Server online' : 'Server problem';
+          $('dot').className = 'dot ' + (h.ok ? 'on' : 'off');
+          $('status').textContent = h.ok ? 'Connection server online' : 'Connection server problem';
         })
         .catch(function () {
-          document.getElementById('dot').className = 'dot off';
-          document.getElementById('status').textContent = 'Server offline';
+          $('dot').className = 'dot off';
+          $('status').textContent = 'Connection server offline';
         });
     })();
   </script>
