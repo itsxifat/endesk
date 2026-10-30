@@ -324,6 +324,8 @@ function endHosting() {
   $('hostLive').classList.add('hidden');
   teardownRtc();
   state.role = null;
+  // A session password works for one session: once it ends, issue a new one.
+  refreshSessionPassword();
 }
 
 $('hostStop').addEventListener('click', () => {
