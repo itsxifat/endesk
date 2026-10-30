@@ -12,7 +12,7 @@ PORT=$(sed -n 's/^PORT=//p' /etc/endesk/relay.env)
 REL=$BASE/releases/$(date +%Y%m%d%H%M%S)-$NAME
 
 mkdir -p "$REL"
-tar -x -C "$REL" -f - server deploy/site
+tar -x -C "$REL" -f - server deploy/site-src
 (cd "$REL/server" && PATH="$BASE/node/bin:$PATH" npm ci --omit=dev --ignore-scripts --no-audit --no-fund --loglevel=error)
 chown -R root:root "$REL"
 chmod -R a+rX,go-w "$REL"
@@ -42,7 +42,10 @@ if ! healthy; then
   exit 1
 fi
 
-install -m 0644 "$REL/deploy/site/index.html" /var/www/endesk/index.html
+# Website: build the static pages and copy them over (downloads/ is left alone).
+"$BASE/node/bin/node" "$REL/deploy/site-src/build.js" "$REL/site"
+cp -r "$REL/site/." /var/www/endesk/
+chmod -R a+rX /var/www/endesk
 
 # Keep the five newest releases.
 ls -1dt "$BASE"/releases/*/ | tail -n +6 | xargs -r rm -rf

@@ -1,0 +1,53 @@
+<!-- {
+  "title": "How to control a Windows PC from a Mac",
+  "seoTitle": "How to Control a Windows PC from a Mac (Free Remote Desktop)",
+  "description": "Access and control a Windows 10 or 11 PC from your Mac over the internet, including Windows Home, with a free remote desktop app and no router setup.",
+  "date": "2026-10-29",
+  "keywords": ["control windows from mac", "remote desktop windows from mac", "access pc from mac", "mac to windows remote desktop"]
+} -->
+<p>Maybe your work PC is at the office and you’re on a MacBook at home, or a relative’s Windows laptop needs fixing. Either way, you can control a Windows PC from a Mac in a few minutes. This guide uses <a href="/">EnDesk</a>, a free remote desktop app that works on Windows Home and Pro alike and connects over the internet without router setup.</p>
+
+<h2>What you need</h2>
+<ul>
+  <li>A Windows 10 or 11 PC (64-bit). Home, Pro and other editions all work.</li>
+  <li>A Mac running macOS 12 or later.</li>
+  <li>An internet connection on both. Any networks will do.</li>
+</ul>
+
+<h2>Step 1: Install EnDesk on the Windows PC</h2>
+<ol>
+  <li>Download the <a href="/downloads/EnDesk-Setup.exe">Windows installer</a> and open it.</li>
+  <li>If “Windows protected your PC” appears, click <strong>More info</strong> and then <strong>Run anyway</strong>.</li>
+  <li>Finish the installer and open EnDesk. No extra permissions are needed on Windows.</li>
+</ol>
+<p class="note">No admin rights on that PC? The <a href="/downloads/EnDesk-Portable.exe">portable version</a> runs without installing.</p>
+
+<h2>Step 2: Install EnDesk on the Mac</h2>
+<ol>
+  <li>Download the <a href="/downloads/EnDesk-mac.dmg">Mac version</a>, open it and drag EnDesk to Applications.</li>
+  <li>If macOS can’t verify the app, go to <strong>System Settings → Privacy &amp; Security</strong> and click <strong>Open Anyway</strong>.</li>
+</ol>
+<p>Your Mac is the one doing the controlling, so it doesn’t need the Screen Recording or Accessibility permissions. Those are only for a Mac that is being controlled.</p>
+
+<h2>Step 3: Connect</h2>
+<ol>
+  <li>On the Windows PC, note the <strong>ID</strong> and <strong>Password</strong> on EnDesk’s main screen.</li>
+  <li>On the Mac, choose <strong>Connect</strong>, enter them, and press Connect.</li>
+  <li>On the PC, click <strong>Accept</strong>. The Windows desktop appears on your Mac.</li>
+</ol>
+
+<h2>Windows shortcuts on a Mac keyboard</h2>
+<p>By default, your Mac’s Control key is Ctrl on Windows and ⌘ becomes the Windows key. If you want ⌘C and ⌘V to copy and paste on the PC the way they do on your Mac, turn on <strong>⌘ ↔ Ctrl</strong> in the toolbar while connected.</p>
+<p>The toolbar also has a <strong>Ctrl+Alt+Del</strong> button for apps that listen for that combination. The Windows security screen itself (lock, sign out, change password) only opens for keys pressed on the PC.</p>
+
+<h2>Two Windows limits to know</h2>
+<ul>
+  <li><strong>Administrator prompts (UAC).</strong> When Windows asks “Do you want to allow this app to make changes?”, it shows that prompt on a protected screen that remote control apps can’t click. Someone at the PC has to answer it, or you can avoid tasks that need admin rights while connected.</li>
+  <li><strong>Apps running as administrator.</strong> Windows doesn’t let a normal app send clicks into windows that run with admin rights, so those windows may ignore your input.</li>
+</ul>
+
+<h2>Reach the PC any time</h2>
+<p>For your own PC, set a permanent password in EnDesk’s Settings and turn on <strong>Unattended access</strong>. Then stop the PC from sleeping: <strong>Settings → System → Power</strong>, and set “When plugged in, put my device to sleep after” to Never. The full checklist is in our <a href="/blog/unattended-remote-access/">unattended access guide</a>.</p>
+
+<h2>What about Microsoft Remote Desktop?</h2>
+<p>Microsoft’s own app for Mac (now called Windows App) uses Remote Desktop Protocol, which is excellent on office networks. Two things often get in the way at home: the PC must run a Pro, Enterprise or Education edition of Windows to accept connections, and reaching it over the internet usually needs a VPN or router configuration. EnDesk works on Windows Home and connects over the internet without either. More options are compared in <a href="/blog/best-free-remote-desktop-apps/">free remote desktop apps for Windows and Mac</a>.</p>

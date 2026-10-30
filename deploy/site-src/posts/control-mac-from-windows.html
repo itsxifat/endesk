@@ -1,0 +1,66 @@
+<!-- {
+  "title": "How to control a Mac from a Windows PC",
+  "seoTitle": "How to Control a Mac from a Windows PC (Free, Step by Step)",
+  "description": "Control a Mac from a Windows computer in a few minutes: install a free remote desktop app on both, allow two macOS permissions once, and connect with an ID and a password.",
+  "date": "2026-10-30",
+  "keywords": ["control mac from windows", "remote desktop mac from windows", "access mac from pc", "windows to mac remote control"]
+} -->
+<p>Whether you’re helping someone with their MacBook or reaching your own iMac from a Windows laptop, you can control a Mac from a PC without any special network setup. This guide uses <a href="/">EnDesk</a>, a free remote desktop app for Windows and Mac, and takes about five minutes the first time.</p>
+
+<h2>What you need</h2>
+<ul>
+  <li>A Mac running macOS 12 (Monterey) or later, Apple Silicon or Intel.</li>
+  <li>A Windows 10 or 11 PC.</li>
+  <li>An internet connection on both. They don’t have to be on the same network.</li>
+  <li>Someone at the Mac for the first setup, to install the app and grant two permissions.</li>
+</ul>
+
+<h2>Step 1: Install EnDesk on the Mac</h2>
+<ol>
+  <li>Download the <a href="/downloads/EnDesk-mac.dmg">Mac version</a> and open the <code>.dmg</code> file.</li>
+  <li>Drag EnDesk into the Applications folder and open it.</li>
+  <li>If macOS says it can’t verify the app, open <strong>System Settings → Privacy &amp; Security</strong>, scroll down and click <strong>Open Anyway</strong>. You only do this once.</li>
+</ol>
+
+<h2>Step 2: Allow Screen Recording and Accessibility</h2>
+<p>macOS protects your screen and your keyboard and mouse from other apps. To let a remote computer see the Mac and control it, EnDesk needs two permissions:</p>
+<ul>
+  <li><strong>Screen Recording</strong> lets EnDesk capture the screen so the Windows PC can see it. Without it, the remote side sees a blank or frozen picture.</li>
+  <li><strong>Accessibility</strong> lets EnDesk move the pointer and type. Without it, you can see the Mac but clicks and keys do nothing.</li>
+</ul>
+<p>EnDesk shows both on its main screen with an <strong>Open Settings</strong> button next to each. Turn EnDesk on in each list, then quit and reopen EnDesk so macOS applies the change.</p>
+<p class="note">These permissions belong to the Mac being controlled. A Mac that only controls other computers doesn’t need them.</p>
+
+<h2>Step 3: Install EnDesk on the Windows PC</h2>
+<ol>
+  <li>Download the <a href="/downloads/EnDesk-Setup.exe">Windows installer</a> and run it.</li>
+  <li>If Windows shows “Windows protected your PC”, click <strong>More info</strong>, then <strong>Run anyway</strong>.</li>
+  <li>Can’t install software on that PC? Use the <a href="/downloads/EnDesk-Portable.exe">portable version</a>, which runs without installing.</li>
+</ol>
+
+<h2>Step 4: Connect</h2>
+<ol>
+  <li>On the Mac, EnDesk shows <strong>Your ID</strong> (nine digits) and a <strong>Password</strong>.</li>
+  <li>On the PC, open EnDesk, choose <strong>Connect</strong>, type the ID and password, and press Connect.</li>
+  <li>On the Mac, click <strong>Accept</strong>. The Mac’s screen appears on the PC, and your mouse and keyboard now control it.</li>
+</ol>
+<p>To end the session, click <strong>Disconnect</strong> on the PC or <strong>Stop sharing</strong> on the Mac.</p>
+
+<h2>Using Mac shortcuts from a Windows keyboard</h2>
+<p>A Windows keyboard has no ⌘ key. By default the Windows key acts as ⌘ on the Mac. If you’d rather press <strong>Ctrl+C</strong> and <strong>Ctrl+V</strong> the way you do on Windows, turn on <strong>⌘ ↔ Ctrl</strong> in the toolbar while connected, and Ctrl is sent as ⌘.</p>
+
+<h2>Reach the Mac when nobody is there</h2>
+<p>For your own Mac, you can skip the Accept step. In EnDesk’s Settings, set a permanent password, then turn on <strong>Unattended access</strong>. Keep the Mac awake: in <strong>System Settings → Energy</strong> (or Battery → Options on a laptop), prevent automatic sleep when the display is off. Read more in our guide to <a href="/blog/unattended-remote-access/">unattended remote access</a>.</p>
+
+<h2>Troubleshooting</h2>
+<h3>The screen is black or doesn’t update</h3>
+<p>Screen Recording isn’t allowed yet, or EnDesk wasn’t reopened after allowing it. Check <strong>System Settings → Privacy &amp; Security → Screen Recording</strong>, then quit and reopen EnDesk.</p>
+<h3>I can see the Mac, but clicks do nothing</h3>
+<p>Turn on EnDesk under <strong>Accessibility</strong> and reopen the app. Also check that <strong>Control</strong> is on in the toolbar.</p>
+<h3>“No device online with that ID”</h3>
+<p>EnDesk must be open on the Mac, and its sidebar should show the server as Online. Double-check the nine digits.</p>
+<h3>The connection fails after Accept</h3>
+<p>Some strict networks block direct connections. EnDesk then relays the session automatically; if it still fails, try another network, such as a phone hotspot, to find out which side is blocking it.</p>
+
+<h2>Other ways to control a Mac from Windows</h2>
+<p>macOS has built-in Screen Sharing, which a Windows PC can reach with a VNC viewer. It works well on the same local network, but reaching it over the internet usually means router or VPN setup. Browser-based tools such as Chrome Remote Desktop also work and need a Google account. For a comparison, see <a href="/blog/best-free-remote-desktop-apps/">free remote desktop apps for Windows and Mac</a>.</p>
